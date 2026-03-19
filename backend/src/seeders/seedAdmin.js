@@ -1,37 +1,70 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-require('dotenv').config(); // busca .env en backend/ automáticamente
-
-const MONGO_URI = process.env.MONGO_URI;
-
-const adminData = {
-  nombre: 'Administrador',
-  correo: 'admin@resireport.com',
-  password: 'Admin1234',
-  rol: 'admin',
-  isActive: true,
-};
+const ComplaintType = require('../models/ComplaintType');
+const ComplaintStatus = require('../models/ComplaintStatus');
+require('dotenv').config();
 
 const seed = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ MongoDB conectado');
 
-    const existe = await User.findOne({ correo: adminData.correo });
-    if (existe) {
-      console.log('⚠️  El admin ya existe, no se creó duplicado');
-      process.exit(0);
+    // --- ADMIN ---
+    const adminExiste = await User.findOne({ correo: 'admin@resireport.com' });
+    if (!adminExiste) {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash('Admin1234', salt);
+      await User.create({
+        nombre: 'Administrador',
+        correo: 'admin@resireport.com',
+        password: passwordHash,
+        rol: 'admin',
+        isActive: true,
+      });
+      console.log('🌱 Admin creado');
+    } else {
+      console.log('⚠️  Admin ya existe, se omitió');
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(adminData.password, salt);
+    // --- TIPOS DE DENUNCIA ---
+    const tipos = [
+      { nombre: 'Ruido excesivo',      descripcion: 'Molestias por ruido en horas no permitidas' },
+      { nombre: 'Daño a zonas comunes', descripcion: 'Deterioro o daño en áreas compartidas' },
+      { nombre: 'Mascota sin control',  descripcion: 'Mascotas sueltas o sin supervisión' },
+      { nombre: 'Basura mal dispuesta', descripcion: 'Residuos fuera de los puntos autorizados' },
+      { nombre: 'Conflicto entre vecinos', descripcion: 'Disputas o situaciones de convivencia' },
+    ];
 
-    await User.create({ ...adminData, password: passwordHash });
+    for (const tipo of tipos) {
+      const existe = await ComplaintType.findOne({ nombre: tipo.nombre });
+      if (!existe) {
+        await ComplaintType.create(tipo);
+        console.log(`🌱 Tipo creado: ${tipo.nombre}`);
+      } else {
+        console.log(`⚠️  Tipo ya existe: ${tipo.nombre}`);
+      }
+    }
 
-    console.log('🌱 Admin creado exitosamente');
-    console.log(`   Correo: ${adminData.correo}`);
-    console.log(`   Password: ${adminData.password}`);
+    // --- ESTADOS BASE ---
+    const estados = [
+      { nombre: 'Pendiente',    color: '#FFA500', isDefault: true  },
+      { nombre: 'En revisión',  color: '#3B82F6', isDefault: false },
+      { nombre: 'Resuelto',     color: '#22C55E', isDefault: false },
+      { nombre: 'Rechazado',    color: '#EF4444', isDefault: false },
+    ];
+
+    for (const estado of estados) {
+      const existe = await ComplaintStatus.findOne({ nombre: estado.nombre });
+      if (!existe) {
+        await ComplaintStatus.create(estado);
+        console.log(`🌱 Estado creado: ${estado.nombre}`);
+      } else {
+        console.log(`⚠️  Estado ya existe: ${estado.nombre}`);
+      }
+    }
+
+    console.log('\n✅ Seed completado exitosamente');
     process.exit(0);
   } catch (error) {
     console.error('❌ Error en seed:', error.message);
