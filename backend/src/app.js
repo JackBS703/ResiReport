@@ -6,9 +6,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check — verifica que el servidor responde antes de conectar la BD
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'ResiReport API corriendo ✅' });
 });
+
+// Aquí se registrarán las rutas de la API, por ejemplo:
+// app.use('/api/auth', authRoutes);
+// app.use('/api/residents', residentRoutes);
+// ...
 
 module.exports = app;
