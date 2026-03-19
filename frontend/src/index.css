@@ -1,0 +1,14 @@
+/* Tailwind v4: una sola línea reemplaza las 3 directivas de v3 */
+@import "tailwindcss";
+
+/* Paleta de colores del proyecto — definida en DESIGN.md */
+@theme {
+  --color-primary: #1E3A5F;
+  --color-secondary: #2E6DA4;
+  --color-accent: #28A99E;
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  --color-danger: #E74C3C;
+  --color-neutral: #4A5568;
+  --color-surface: #F4F6F9;
+}
