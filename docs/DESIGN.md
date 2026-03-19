@@ -122,6 +122,38 @@ monorepo-denuncias/
 ├── .gitignore
 └── README.md # Setup completo + despliegue
 ```
+### Paleta de Colores (tailwind.config.js)
+
+| Token | Hex | Uso |
+|---|---|---|
+| `primary` | `#1E3A5F` | Navbar, sidebar, títulos |
+| `secondary` | `#2E6DA4` | Botones principales, links |
+| `accent` | `#28A99E` | Badges, highlights, iconos activos |
+| `success` | `#27AE60` | Badge estado "Resuelta" |
+| `warning` | `#F39C12` | Badge estado "En proceso", prioridad media |
+| `danger` | `#E74C3C` | Badge estado "Rechazada", errores de form |
+| `neutral` | `#4A5568` | Texto cuerpo, labels |
+| `surface` | `#F4F6F9` | Fondo de cards, tablas |
+| `white` | `#FFFFFF` | Fondo general |
+
+**Mapeo de componentes clave:**
+
+| Componente | Token a usar |
+|---|---|
+| Navbar / Sidebar | `primary` |
+| Botón "Crear denuncia" | `secondary` |
+| `StatusBadge` — Resuelta | `success` |
+| `StatusBadge` — En proceso | `warning` |
+| `StatusBadge` — Rechazada | `danger` |
+| `StatusBadge` — Registrada | `accent` |
+| `PriorityBadge` — Alta | `danger` |
+| `PriorityBadge` — Media | `warning` |
+| `PriorityBadge` — Baja | `success` |
+| `PriorityBadge` — Sin asignar | `neutral` |
+| Fondo de cards y tablas | `surface` |
+| Textos y etiquetas | `neutral` |
+| Fondo general | `white` |
+
 ## Paso 2: Modelo de Datos MongoDB
 
 **Colecciones:** `users` · `complaints` · `complaintTypes` · `complaintStatuses`
