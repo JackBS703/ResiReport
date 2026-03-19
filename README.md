@@ -1,11 +1,25 @@
 # ResiReport 🏢
 
-Sistema web de denuncias de fallas y convivencia para unidades residenciales cerradas.
+Sistema web de gestión de denuncias para conjuntos residenciales.
+Permite a residentes radicar denuncias y a administradores/porteros gestionarlas con seguimiento de estados.
 
-**Stack:** React + Vite · Node.js + Express · MongoDB Atlas  
 **Institución:** Politécnico Jaime Isaza Cadavid  
 **Materia:** Pruebas y gestión de Software  
 **Fecha:** Marzo 2026
+
+## Tecnologías
+
+### Backend
+- Node.js + Express
+- MongoDB + Mongoose
+- JWT (jsonwebtoken) + bcryptjs
+- dotenv, cors, nodemon
+
+### Frontend
+- React 18 + Vite
+- React Router DOM v7
+- Axios
+- Tailwind CSS v4 + shadcn/ui (Radix)
 
 ---
 
@@ -82,7 +96,7 @@ npm run dev
 ```
 - Frontend: http://localhost:5173
 - Backend: http://localhost:5000
-- Health check: http://localhost:5173/api/health
+- Health check: http://localhost:5000/api/health
 
 ### 5. Seed — Crear Super Admin inicial
 ```bash
@@ -90,6 +104,12 @@ npm run seed
 ```
 > Credenciales por defecto documentadas en `docs/DESIGN.md`. Cambiarlas después del primer login.
 
+### Agregar componentes shadcn/ui
+```bash
+cd frontend
+npx shadcn@latest add [nombre-componente]
+# Ejemplo: npx shadcn@latest add dialog
+```
 ---
 
 ## 🌿 Flujo de ramas
