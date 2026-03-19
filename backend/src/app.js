@@ -3,6 +3,7 @@ const cors = require('cors');
 const errorHandler = require('./middlewares/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const complaintRoutes = require('./routes/complaintRoutes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get('/api/health', (req, res) => {
 // ...
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/complaints', complaintRoutes);
 
 // Middleware de manejo de errores (debe ir al final, después de las rutas)
 app.use(errorHandler);
