@@ -1,8 +1,7 @@
 # Diseño Técnico — Sistema de Denuncias v1
 ## Paso 1: Arquitectura de Alto Nivel
 
-**Fecha:** 18 de marzo de 2026  
-**Arquitecto:** Perplexity AI  
+**Fecha:** 19 de marzo de 2026   
 **Estado:** Aprobado para v1 (una unidad residencial)
 
 ---
@@ -122,7 +121,7 @@ monorepo-denuncias/
 ├── .gitignore
 └── README.md # Setup completo + despliegue
 ```
-### Paleta de Colores (tailwind.config.js)
+### Paleta de Colores
 
 | Token | Hex | Uso |
 |---|---|---|
@@ -153,6 +152,27 @@ monorepo-denuncias/
 | Fondo de cards y tablas | `surface` |
 | Textos y etiquetas | `neutral` |
 | Fondo general | `white` |
+
+**Implementación en Tailwind v4:**
+
+En Tailwind v4 ya no existe `tailwind.config.js`. Los colores personalizados
+se declaran directamente en `frontend/src/index.css` con la directiva `@theme`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1E3A5F;
+  --color-secondary: #2E6DA4;
+  --color-accent: #28A99E;
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  --color-danger: #E74C3C;
+  --color-neutral: #4A5568;
+  --color-surface: #F4F6F9;
+}
+```
+Uso en JSX: `bg-primary`, `text-danger`, `border-accent`, etc.
 
 ## Paso 2: Modelo de Datos MongoDB
 
