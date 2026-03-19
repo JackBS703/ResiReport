@@ -11,8 +11,8 @@ import Navbar from '@/components/shared/Navbar';
 
 // Páginas — se irán completando en pasos siguientes
 // Admin
-const AllComplaintsPage = () => <div>AllComplaints — próximamente</div>;
-const ComplaintDetailAdminPage = () => <div>ComplaintDetailAdmin — próximamente</div>;
+import AllComplaintsPage from '@/pages/admin/AllComplaintsPage';
+import ComplaintDetailAdminPage from '@/pages/admin/ComplaintDetailAdminPage';
 // Resident
 const MyComplaintsPage = () => <div>MyComplaints — próximamente</div>;
 const CreateComplaintPage = () => <div>CreateComplaint — próximamente</div>;

@@ -7,7 +7,7 @@ export const getComplaintTypes = () =>
 
 // GET /api/complaint-types/active  (solo para formularios)
 export const getActiveComplaintTypes = () =>
-  axiosInstance.get('/complaint-types/active');
+  axiosInstance.get('/catalog/types/active');
 
 // POST /api/complaint-types
 export const createComplaintType = (data) =>
@@ -32,7 +32,7 @@ export const getComplaintStatuses = () =>
 
 // GET /api/complaint-statuses/active
 export const getActiveComplaintStatuses = () =>
-  axiosInstance.get('/complaint-statuses/active');
+  axiosInstance.get('/catalog/statuses/active');
 
 // POST /api/complaint-statuses
 export const createComplaintStatus = (data) =>
