@@ -19,7 +19,7 @@ const seed = async () => {
         nombre: 'Administrador',
         correo: 'admin@resireport.com',
         password: passwordHash,
-        rol: 'admin',
+        rol: 'superadmin',
         isActive: true,
       });
       console.log('🌱 Admin creado');
