@@ -1,8 +1,7 @@
 # Diseño Técnico — Sistema de Denuncias v1
 ## Paso 1: Arquitectura de Alto Nivel
 
-**Fecha:** 18 de marzo de 2026  
-**Arquitecto:** Perplexity AI  
+**Fecha:** 19 de marzo de 2026   
 **Estado:** Aprobado para v1 (una unidad residencial)
 
 ---
@@ -122,6 +121,59 @@ monorepo-denuncias/
 ├── .gitignore
 └── README.md # Setup completo + despliegue
 ```
+### Paleta de Colores
+
+| Token | Hex | Uso |
+|---|---|---|
+| `primary` | `#1E3A5F` | Navbar, sidebar, títulos |
+| `secondary` | `#2E6DA4` | Botones principales, links |
+| `accent` | `#28A99E` | Badges, highlights, iconos activos |
+| `success` | `#27AE60` | Badge estado "Resuelta" |
+| `warning` | `#F39C12` | Badge estado "En proceso", prioridad media |
+| `danger` | `#E74C3C` | Badge estado "Rechazada", errores de form |
+| `neutral` | `#4A5568` | Texto cuerpo, labels |
+| `surface` | `#F4F6F9` | Fondo de cards, tablas |
+| `white` | `#FFFFFF` | Fondo general |
+
+**Mapeo de componentes clave:**
+
+| Componente | Token a usar |
+|---|---|
+| Navbar / Sidebar | `primary` |
+| Botón "Crear denuncia" | `secondary` |
+| `StatusBadge` — Resuelta | `success` |
+| `StatusBadge` — En proceso | `warning` |
+| `StatusBadge` — Rechazada | `danger` |
+| `StatusBadge` — Registrada | `accent` |
+| `PriorityBadge` — Alta | `danger` |
+| `PriorityBadge` — Media | `warning` |
+| `PriorityBadge` — Baja | `success` |
+| `PriorityBadge` — Sin asignar | `neutral` |
+| Fondo de cards y tablas | `surface` |
+| Textos y etiquetas | `neutral` |
+| Fondo general | `white` |
+
+**Implementación en Tailwind v4:**
+
+En Tailwind v4 ya no existe `tailwind.config.js`. Los colores personalizados
+se declaran directamente en `frontend/src/index.css` con la directiva `@theme`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1E3A5F;
+  --color-secondary: #2E6DA4;
+  --color-accent: #28A99E;
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  --color-danger: #E74C3C;
+  --color-neutral: #4A5568;
+  --color-surface: #F4F6F9;
+}
+```
+Uso en JSX: `bg-primary`, `text-danger`, `border-accent`, etc.
+
 ## Paso 2: Modelo de Datos MongoDB
 
 **Colecciones:** `users` · `complaints` · `complaintTypes` · `complaintStatuses`

@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
+const residentRoutes = require('./routes/residentRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/residents', residentRoutes); 
 
 // Middleware de manejo de errores (debe ir al final, después de las rutas)
 app.use(errorHandler);

@@ -77,6 +77,13 @@ git checkout dev
 ```bash
 cp backend/.env.example backend/.env
 ```
+Variables requeridas:
+```env
+MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/resireport
+JWT_SECRET=un_secreto_largo_y_seguro
+PORT=5000
+```
+
 Edita backend/.env con tus credenciales reales de MongoDB Atlas y un JWT_SECRET seguro.
 ### 3. Instalar dependencias
 ```bash
@@ -102,7 +109,11 @@ npm run dev
 ```bash
 npm run seed
 ```
-> Credenciales por defecto documentadas en `docs/DESIGN.md`. Cambiarlas después del primer login.
+| Rol        | Email                | Contraseña |
+|------------|----------------------|------------|
+| Superadmin | admin@resireport.com | Admin1234  |
+
+> ⚠️ Cambiar la contraseña después del primer login en producción.
 
 ### Agregar componentes shadcn/ui
 ```bash
@@ -131,3 +142,5 @@ npx shadcn@latest add [nombre-componente]
 | Persona 2 | Gestión de Usuarios |
 | Persona 3 | Catálogos |
 | Persona 4 | Denuncias Residente |
+
+> ⚠️ **Nota para el equipo:** Los archivos `usersApi.js` y `catalogApi.js` ya fueron creados como infraestructura base. **No recrearlos.** Las rutas `/api/catalog/types/active` y `/api/catalog/statuses/active` también están implementadas.

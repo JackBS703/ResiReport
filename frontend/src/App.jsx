@@ -6,31 +6,34 @@ import { ROLES } from '@/utils/constants';
 // Páginas auth
 import LoginPage from '@/pages/auth/LoginPage';
 
-// Layouts con Navbar (placeholders por ahora)
+// Layouts con Navbar
 import Navbar from '@/components/shared/Navbar';
 
-// Páginas — se irán completando en pasos siguientes
-// Admin
+// Páginas Admin
 import AllComplaintsPage from '@/pages/admin/AllComplaintsPage';
 import ComplaintDetailAdminPage from '@/pages/admin/ComplaintDetailAdminPage';
-// Resident
+import ResidentsPage from '@/pages/admin/ResidentsPage'; // ← NUEVO
+
+// Páginas Resident (placeholders)
 const MyComplaintsPage = () => <div>MyComplaints — próximamente</div>;
 const CreateComplaintPage = () => <div>CreateComplaint — próximamente</div>;
 const ComplaintDetailPage = () => <div>ComplaintDetail — próximamente</div>;
 const ProfilePage = () => <div>Profile — próximamente</div>;
+
 // Shared
 const NoAutorizado = () => <div className="p-8 text-red-500 font-semibold">403 — No autorizado</div>;
 
-// Layout con Navbar envuelve las rutas protegidas
 const LayoutConNavbar = () => (
   <div className="min-h-screen bg-surface flex flex-col">
     <Navbar />
     <main className="flex-1 p-6">
       <Routes>
+
         {/* ── Admin + SuperAdmin ── */}
         <Route element={<RoleRoute roles={[ROLES.ADMIN, ROLES.SUPERADMIN]} />}>
           <Route path="/denuncias" element={<AllComplaintsPage />} />
           <Route path="/denuncias/:id" element={<ComplaintDetailAdminPage />} />
+          <Route path="/residentes" element={<ResidentsPage />} /> {/* ← NUEVO */}
         </Route>
 
         {/* ── Solo SuperAdmin ── */}
@@ -46,9 +49,10 @@ const LayoutConNavbar = () => (
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
 
-        {/* ── Compartidas (cualquier rol autenticado) ── */}
+        {/* ── Compartidas ── */}
         <Route path="/no-autorizado" element={<NoAutorizado />} />
         <Route path="*" element={<Navigate to="/no-autorizado" replace />} />
+
       </Routes>
     </main>
   </div>
@@ -57,15 +61,12 @@ const LayoutConNavbar = () => (
 const App = () => {
   return (
     <Routes>
-      {/* Ruta pública */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Rutas protegidas — requieren token válido */}
       <Route element={<PrivateRoute />}>
         <Route path="/*" element={<LayoutConNavbar />} />
       </Route>
 
-      {/* Raíz redirige a login */}
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
