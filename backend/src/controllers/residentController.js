@@ -42,18 +42,46 @@ const getResidentById = async (req, res, next) => {
 // POST /api/residents — HU-03
 const createResident = async (req, res, next) => {
   try {
-    const { nombre, correo, password, torre, apartamento, telefono, tipoResidente, isActive } = req.body;
+    const {
+      nombre,
+      correo,
+      password,
+      torre,
+      apartamento,
+      telefono,
+      tipoResidente,
+      isActive,
+    } = req.body;
 
-    if (!nombre || !correo || !password || !torre || !apartamento) {
+    // Campos obligatorios incluyendo estado (isActive)
+    if (!nombre || !correo || !password || !torre || !apartamento || isActive === undefined) {
       return res.status(400).json({
         ok: false,
-        message: 'nombre, correo, password, torre y apartamento son obligatorios',
+        message: 'nombre, correo, password, torre, apartamento y estado son obligatorios',
       });
     }
 
-    const exists = await User.findOne({ correo: correo.toLowerCase() });
-    if (exists) {
-      return res.status(409).json({ ok: false, message: 'El correo ya está registrado' });
+    // Correo único en el sistema
+    const emailExists = await User.findOne({ correo: correo.toLowerCase() });
+    if (emailExists) {
+      return res.status(409).json({
+        ok: false,
+        message: 'El correo ya está registrado en el sistema',
+      });
+    }
+
+    //  Apartamento duplicado — busca otro residente en la misma torre y apartamento
+  const aptExists = await User.findOne({
+    rol: 'resident',
+    torre: { $regex: new RegExp(`^${torre.trim()}$`, 'i') },
+    apartamento: { $regex: new RegExp(`^${apartamento.trim()}$`, 'i') },
+  });
+
+
+    // Si existe, se permite crear pero se envía advertencia en la respuesta
+    const warnings = [];
+    if (aptExists) {
+      warnings.push(`Ya existe un residente registrado en Torre ${torre}, Apto ${apartamento}`);
     }
 
     const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 10;
@@ -64,15 +92,18 @@ const createResident = async (req, res, next) => {
       correo: correo.toLowerCase(),
       password: hashedPassword,
       rol: 'resident',
-      torre,
-      apartamento,
-      telefono: telefono || null,
+      torre: torre.trim(),
+      apartamento: apartamento.trim(),
+      telefono: telefono?.trim() || null,
       tipoResidente: tipoResidente || null,
-      isActive: isActive !== undefined ? isActive : true,
+      isActive,
     });
 
+    //  Confirmación visual — respuesta clara con datos del creado y advertencias 
     res.status(201).json({
       ok: true,
+      message: 'Residente creado exitosamente',
+      warnings,   // array vacío [] si no hay advertencias
       data: {
         id: resident._id,
         nombre: resident.nombre,
@@ -80,6 +111,10 @@ const createResident = async (req, res, next) => {
         rol: resident.rol,
         torre: resident.torre,
         apartamento: resident.apartamento,
+        tipoResidente: resident.tipoResidente,
+        telefono: resident.telefono,
+        isActive: resident.isActive,
+        createdAt: resident.createdAt,
       },
     });
   } catch (error) {

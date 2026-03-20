@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
+const residentRoutes = require('./routes/residentRoutes');
 
 const app = express();
 
