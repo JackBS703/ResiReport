@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getResidents, createResident, toggleResidentStatus } from '../../api/residentsApi';
+import { updateResident, getResidents, createResident, toggleResidentStatus } from '../../api/residentsApi';
 import ResidentFormModal from '../../components/residents/ResidentFormModal';
 import Swal from 'sweetalert2';
 
@@ -9,6 +9,8 @@ export default function ResidentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [residentToEdit, setResidentToEdit] = useState(null);
+
 
   const fetchResidents = async (q = '') => {
     setLoading(true);
@@ -72,6 +74,24 @@ export default function ResidentsPage() {
     }
   };
 
+  const handleEdit = async (data) => {
+    try {
+      await updateResident(residentToEdit._id, data);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Residente actualizado',
+        text: 'Los datos fueron guardados exitosamente.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      setResidentToEdit(null);
+      fetchResidents(search);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Error al actualizar el residente';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#E74C3C' });
+    }
+  };
+
   const handleToggleStatus = async (resident) => {
     const accion = resident.isActive ? 'desactivar' : 'activar';
     const accionPasado = resident.isActive ? 'desactivado' : 'activado';
@@ -126,7 +146,7 @@ export default function ResidentsPage() {
           onClick={() => setShowModal(true)}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-950 active:scale-95 transition-all duration-150"
         >
-           Crear residente
+          Crear residente
         </button>
 
       </div>
@@ -167,40 +187,60 @@ export default function ResidentsPage() {
                   <td className="px-4 py-3">{r.apartamento}</td>
                   <td className="px-4 py-3 capitalize">{r.tipoResidente || '—'}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      r.isActive
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.isActive
                         ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-600'
-                    }`}>
+                      }`}>
                       {r.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                  <button
-                      onClick={() => handleToggleStatus(r)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
-                        r.isActive
-                          ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
-                          : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
-                      }`}
-                    >
-                      {r.isActive ? ' Desactivar' : ' Activar'}
-                    </button>
+                    <div className="flex items-center gap-2">
+
+                      <button
+                        onClick={() => setResidentToEdit(r)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleStatus(r)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${r.isActive
+                            ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
+                            : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
+                          }`}
+                      >
+                        {r.isActive ? 'Desactivar' : 'Activar'}
+                      </button>
+
+                    </div>
                   </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal crear */}
       {showModal && (
         <ResidentFormModal
           onClose={() => setShowModal(false)}
           onSave={handleCreate}
         />
       )}
+
+      {/* Modal editar */}
+      {residentToEdit && (
+        <ResidentFormModal
+          residentToEdit={residentToEdit}
+          onClose={() => setResidentToEdit(null)}
+          onSave={handleEdit}
+        />
+      )}
+
     </div>
   );
 }
