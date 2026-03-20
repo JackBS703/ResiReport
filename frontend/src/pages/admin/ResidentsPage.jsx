@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getResidents, createResident } from '../../api/residentsApi';
+import { getResidents, createResident, toggleResidentStatus } from '../../api/residentsApi';
 import ResidentFormModal from '../../components/residents/ResidentFormModal';
 import Swal from 'sweetalert2';
 
@@ -72,6 +72,45 @@ export default function ResidentsPage() {
     }
   };
 
+  const handleToggleStatus = async (resident) => {
+    const accion = resident.isActive ? 'desactivar' : 'activar';
+    const accionPasado = resident.isActive ? 'desactivado' : 'activado';
+
+    const confirm = await Swal.fire({
+      icon: 'warning',
+      title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} residente?`,
+      html: `<p>Estás a punto de <strong>${accion}</strong> la cuenta de <strong>${resident.nombre}</strong>.</p>
+             ${resident.isActive ? '<p class="text-sm text-gray-500 mt-1">Sus denuncias seguirán visibles en el sistema.</p>' : ''}`,
+      showCancelButton: true,
+      confirmButtonText: `Sí, ${accion}`,
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: resident.isActive ? '#E74C3C' : '#27AE60',
+      cancelButtonColor: '#4A5568',
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await toggleResidentStatus(resident._id, !resident.isActive);
+      await Swal.fire({
+        icon: 'success',
+        title: `Residente ${accionPasado}`,
+        text: `La cuenta de ${resident.nombre} fue ${accionPasado} exitosamente.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      fetchResidents(search);
+    } catch (err) {
+      const msg = err.response?.data?.message || `Error al ${accion} el residente`;
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: msg,
+        confirmButtonColor: '#E74C3C',
+      });
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
 
@@ -85,11 +124,11 @@ export default function ResidentsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg shadow hover:bg-gray-950 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-950 active:scale-95 transition-all duration-150"
         >
-          <span className="text-lg leading-none">+</span>
-          Crear residente
+           Crear residente
         </button>
+
       </div>
 
       {/* Buscador + Tabla */}
@@ -116,6 +155,7 @@ export default function ResidentsPage() {
                 <th className="px-4 py-3 border-b">Apto</th>
                 <th className="px-4 py-3 border-b">Tipo</th>
                 <th className="px-4 py-3 border-b">Estado</th>
+                <th className="px-4 py-3 border-b">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +175,18 @@ export default function ResidentsPage() {
                       {r.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
+                  <td className="px-4 py-3">
+                  <button
+                      onClick={() => handleToggleStatus(r)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${
+                        r.isActive
+                          ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
+                          : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
+                      }`}
+                    >
+                      {r.isActive ? ' Desactivar' : ' Activar'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -152,3 +204,4 @@ export default function ResidentsPage() {
     </div>
   );
 }
+
