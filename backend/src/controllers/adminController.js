@@ -1,27 +1,38 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const { BCRYPT_ROUNDS } = require('../config/env');
+const {
+  BCRYPT_ROUNDS
+} = require('../config/env');
 
 // GET /api/admins
 const listarAdmins = async (req, res) => {
   try {
-    const { search = '' } = req.query;
+    const {
+      search = ''
+    } = req.query;
 
     const filtro = {
-      rol: { $in: ['admin', 'superadmin'] },
+      rol: {
+        $in: ['admin', 'superadmin']
+      },
     };
 
     if (search.trim()) {
       const regex = new RegExp(search.trim(), 'i');
-      filtro.$or = [
-        { nombre: regex },
-        { correo: regex },
+      filtro.$or = [{
+          nombre: regex
+        },
+        {
+          correo: regex
+        },
       ];
     }
 
     const admins = await User.find(filtro)
       .select('-password')
-      .sort({ createdAt: -1 });
+      .sort({
+        createdAt: -1
+      });
 
     return res.status(200).json({
       ok: true,
@@ -40,11 +51,15 @@ const listarAdmins = async (req, res) => {
 // GET /api/admins/:id
 const obtenerAdminPorId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
 
     const admin = await User.findOne({
       _id: id,
-      rol: { $in: ['admin', 'superadmin'] },
+      rol: {
+        $in: ['admin', 'superadmin']
+      },
     }).select('-password');
 
     if (!admin) {
@@ -76,7 +91,7 @@ const crearAdmin = async (req, res) => {
       password,
       rol,
       telefono,
-      isActive,
+      isActive
     } = req.body;
 
     if (!nombre || !correo || !password || !rol) {
@@ -95,7 +110,9 @@ const crearAdmin = async (req, res) => {
 
     const correoNormalizado = correo.trim().toLowerCase();
 
-    const existeCorreo = await User.findOne({ correo: correoNormalizado });
+    const existeCorreo = await User.findOne({
+      correo: correoNormalizado
+    });
     if (existeCorreo) {
       return res.status(409).json({
         ok: false,
@@ -103,22 +120,22 @@ const crearAdmin = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(
-      password,
-      Number(BCRYPT_ROUNDS) || 10
-    );
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     const nuevoAdmin = await User.create({
       nombre: nombre.trim(),
       correo: correoNormalizado,
       password: hashedPassword,
       rol,
-      telefono: telefono?.trim() || '',
+      telefono: telefono?.trim() || null,
       isActive: typeof isActive === 'boolean' ? isActive : true,
     });
 
-    const adminCreado = nuevoAdmin.toObject();
-    delete adminCreado.password;
+    // Eliminar password del objeto de respuesta de forma segura
+    const {
+      password: _pw,
+      ...adminCreado
+    } = nuevoAdmin.toObject();
 
     return res.status(201).json({
       ok: true,
@@ -137,19 +154,23 @@ const crearAdmin = async (req, res) => {
 // PUT /api/admins/:id
 const actualizarAdmin = async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
     const {
       nombre,
       correo,
       password,
       rol,
       telefono,
-      isActive,
+      isActive
     } = req.body;
 
     const adminActual = await User.findOne({
       _id: id,
-      rol: { $in: ['admin', 'superadmin'] },
+      rol: {
+        $in: ['admin', 'superadmin']
+      },
     });
 
     if (!adminActual) {
@@ -164,7 +185,9 @@ const actualizarAdmin = async (req, res) => {
     if (correoNormalizado && correoNormalizado !== adminActual.correo) {
       const correoExiste = await User.findOne({
         correo: correoNormalizado,
-        _id: { $ne: id },
+        _id: {
+          $ne: id
+        },
       });
 
       if (correoExiste) {
@@ -183,25 +206,34 @@ const actualizarAdmin = async (req, res) => {
     }
 
     const actualizacion = {
-      ...(nombre !== undefined && { nombre: nombre.trim() }),
-      ...(correoNormalizado && { correo: correoNormalizado }),
-      ...(rol && { rol }),
-      ...(telefono !== undefined && { telefono: telefono.trim() }),
-      ...(typeof isActive === 'boolean' && { isActive }),
+      ...(nombre !== undefined && {
+        nombre: nombre.trim()
+      }),
+      ...(correoNormalizado && {
+        correo: correoNormalizado
+      }),
+      ...(rol && {
+        rol
+      }),
+      ...(telefono !== undefined && {
+        telefono: telefono?.trim() || null
+      }),
+      ...(typeof isActive === 'boolean' && {
+        isActive
+      }),
     };
 
-    // HU-20 / RF-39: contraseña opcional
+    // HU-20 / RF-39: solo actualiza si el superadmin escribe una contraseña nueva
     if (password && password.trim()) {
-      actualizacion.password = await bcrypt.hash(
-        password.trim(),
-        Number(BCRYPT_ROUNDS) || 10
-      );
+      actualizacion.password = await bcrypt.hash(password.trim(), BCRYPT_ROUNDS);
     }
 
     const adminActualizado = await User.findByIdAndUpdate(
       id,
-      actualizacion,
-      { new: true, runValidators: true }
+      actualizacion, {
+        new: true,
+        runValidators: true
+      }
     ).select('-password');
 
     return res.status(200).json({
@@ -221,17 +253,20 @@ const actualizarAdmin = async (req, res) => {
 // PATCH /api/admins/:id/status
 const toggleEstadoAdmin = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { isActive } = req.body;
-
-    if (typeof isActive !== 'boolean') {
-      return res.status(400).json({
+    const {
+      id
+    } = req.params;
+    const {
+      isActive
+    } = req.body;
+    if (req.user && req.user.userId.toString() === id && isActive === false) {
+      return res.status(403).json({
         ok: false,
-        message: 'El campo isActive debe ser booleano',
+        message: 'No puedes desactivar tu propia cuenta',
       });
     }
 
-    // HU-06 / RF-11: impedir auto-desactivación
+    // HU-06 / RF-11: impedir auto-desactivación del superadmin
     if (req.user && req.user.id === id && isActive === false) {
       return res.status(403).json({
         ok: false,
@@ -241,7 +276,9 @@ const toggleEstadoAdmin = async (req, res) => {
 
     const admin = await User.findOne({
       _id: id,
-      rol: { $in: ['admin', 'superadmin'] },
+      rol: {
+        $in: ['admin', 'superadmin']
+      },
     });
 
     if (!admin) {
@@ -252,9 +289,11 @@ const toggleEstadoAdmin = async (req, res) => {
     }
 
     const adminActualizado = await User.findByIdAndUpdate(
-      id,
-      { isActive },
-      { new: true }
+      id, {
+        isActive
+      }, {
+        new: true
+      }
     ).select('-password');
 
     return res.status(200).json({
