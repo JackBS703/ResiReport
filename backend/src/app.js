@@ -24,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/residents', residentRoutes); 
 
 // Middleware de manejo de errores (debe ir al final, después de las rutas)
 app.use(errorHandler);
