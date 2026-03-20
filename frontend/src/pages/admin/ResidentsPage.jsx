@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { updateResident, getResidents, createResident, toggleResidentStatus } from '../../api/residentsApi';
 import ResidentFormModal from '../../components/residents/ResidentFormModal';
+import { parseApiError } from '../../utils/parseApiError';
 import Swal from 'sweetalert2';
 
 export default function ResidentsPage() {
@@ -11,18 +12,17 @@ export default function ResidentsPage() {
   const [showModal, setShowModal] = useState(false);
   const [residentToEdit, setResidentToEdit] = useState(null);
 
-
   const fetchResidents = async (q = '') => {
     setLoading(true);
     try {
       const res = await getResidents({ search: q });
       setResidents(res.data.data);
       setTotal(res.data.total);
-    } catch {
+    } catch (err) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudieron cargar los residentes',
+        text: parseApiError(err),
         confirmButtonColor: '#E74C3C',
       });
     } finally {
@@ -64,11 +64,10 @@ export default function ResidentsPage() {
       setShowModal(false);
       fetchResidents(search);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Error al crear el residente';
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: msg,
+        title: 'Error al crear',
+        text: parseApiError(err),
         confirmButtonColor: '#E74C3C',
       });
     }
@@ -87,8 +86,12 @@ export default function ResidentsPage() {
       setResidentToEdit(null);
       fetchResidents(search);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Error al actualizar el residente';
-      Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#E74C3C' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al actualizar',
+        text: parseApiError(err),
+        confirmButtonColor: '#E74C3C',
+      });
     }
   };
 
@@ -121,11 +124,10 @@ export default function ResidentsPage() {
       });
       fetchResidents(search);
     } catch (err) {
-      const msg = err.response?.data?.message || `Error al ${accion} el residente`;
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: msg,
+        text: parseApiError(err),
         confirmButtonColor: '#E74C3C',
       });
     }
@@ -148,7 +150,6 @@ export default function ResidentsPage() {
         >
           Crear residente
         </button>
-
       </div>
 
       {/* Buscador + Tabla */}
@@ -166,61 +167,66 @@ export default function ResidentsPage() {
         ) : residents.length === 0 ? (
           <p className="text-neutral text-sm py-8 text-center">No hay residentes registrados.</p>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-surface text-neutral text-left text-xs uppercase tracking-wide">
-                <th className="px-4 py-3 border-b">Nombre</th>
-                <th className="px-4 py-3 border-b">Correo</th>
-                <th className="px-4 py-3 border-b">Torre</th>
-                <th className="px-4 py-3 border-b">Apto</th>
-                <th className="px-4 py-3 border-b">Tipo</th>
-                <th className="px-4 py-3 border-b">Estado</th>
-                <th className="px-4 py-3 border-b">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {residents.map((r) => (
-                <tr key={r._id} className="hover:bg-surface border-b transition-colors">
-                  <td className="px-4 py-3 font-medium text-primary">{r.nombre}</td>
-                  <td className="px-4 py-3 text-neutral">{r.correo}</td>
-                  <td className="px-4 py-3">{r.torre}</td>
-                  <td className="px-4 py-3">{r.apartamento}</td>
-                  <td className="px-4 py-3 capitalize">{r.tipoResidente || '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-600'
-                      }`}>
-                      {r.isActive ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-
-                      <button
-                        onClick={() => setResidentToEdit(r)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        onClick={() => handleToggleStatus(r)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${r.isActive
-                            ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
-                            : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
-                          }`}
-                      >
-                        {r.isActive ? 'Desactivar' : 'Activar'}
-                      </button>
-
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse min-w-[720px]">
+              <thead>
+                <tr className="bg-surface text-neutral text-left text-xs uppercase tracking-wide">
+                  <th className="px-4 py-3 border-b w-40">Nombre</th>
+                  <th className="px-4 py-3 border-b w-48">Correo</th>
+                  <th className="px-4 py-3 border-b w-20">Torre</th>
+                  <th className="px-4 py-3 border-b w-20">Apto</th>
+                  <th className="px-4 py-3 border-b w-28">Tipo</th>
+                  <th className="px-4 py-3 border-b w-24">Estado</th>
+                  <th className="px-4 py-3 border-b w-36">Acciones</th>
                 </tr>
-              ))}
-
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {residents.map((r) => (
+                  <tr key={r._id} className="hover:bg-surface border-b transition-colors">
+                    <td className="px-4 py-3 font-medium text-primary whitespace-nowrap">
+                      {r.nombre}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-neutral truncate max-w-[180px]"
+                      title={r.correo}
+                    >
+                      {r.correo}
+                    </td>
+                    <td className="px-4 py-3">{r.torre}</td>
+                    <td className="px-4 py-3">{r.apartamento}</td>
+                    <td className="px-4 py-3 capitalize">{r.tipoResidente || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.isActive
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-600'
+                        }`}>
+                        {r.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setResidentToEdit(r)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(r)}
+                          className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 ${r.isActive
+                              ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
+                              : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
+                            }`}
+                        >
+                          {r.isActive ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -243,5 +249,5 @@ export default function ResidentsPage() {
 
     </div>
   );
-}
 
+}
