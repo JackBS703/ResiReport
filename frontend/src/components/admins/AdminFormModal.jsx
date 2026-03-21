@@ -6,8 +6,10 @@ export default function AdminFormModal({
   onGuardar,
   onCerrar,
   esSuperAdmin = false,
+  usuarioActualId = null,
 }) {
   const isEditing = !!adminInicial;
+  const isOwnAccount = isEditing && adminInicial?._id === usuarioActualId;
 
   const {
     register,
@@ -40,7 +42,6 @@ export default function AdminFormModal({
   }, [adminInicial, reset]);
 
   const submitHandler = async (data) => {
-    // Si no se escribe contraseña al editar, no se envía
     if (isEditing && !data.password?.trim()) {
       delete data.password;
     }
@@ -48,7 +49,6 @@ export default function AdminFormModal({
     try {
       await onGuardar(data);
     } catch (err) {
-      // Correo duplicado — 409
       if (err?.response?.status === 409) {
         setError('correo', {
           type: 'manual',
@@ -79,6 +79,7 @@ export default function AdminFormModal({
               Nombre completo <span className="text-red-500">*</span>
             </label>
             <input
+              placeholder="Ej. Carlos Rodríguez Pérez"
               {...register('nombre', {
                 required:  'El nombre es obligatorio',
                 minLength: { value: 3, message: 'Mínimo 3 caracteres' },
@@ -102,6 +103,7 @@ export default function AdminFormModal({
             </label>
             <input
               type="email"
+              placeholder="Ej. carlos.rodriguez@resireport.com"
               {...register('correo', {
                 required: 'El correo es obligatorio',
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Correo inválido' },
@@ -117,11 +119,19 @@ export default function AdminFormModal({
           <div>
             <label className="block text-sm font-medium text-neutral mb-1">
               {isEditing
-                ? 'Nueva contraseña (dejar vacío para no cambiar)'
+                ? 'Contraseña'
                 : <> Contraseña <span className="text-red-500">*</span> </>}
             </label>
             <input
               type="password"
+              disabled={isEditing && !esSuperAdmin}
+              placeholder={
+                isEditing && !esSuperAdmin
+                  ? '••••••••'
+                  : isEditing
+                  ? 'Dejar vacío para no cambiar'
+                  : 'Mínimo 6 caracteres'
+              }
               {...register('password', {
                 required: isEditing ? false : 'La contraseña es obligatoria',
                 validate: (value) => {
@@ -131,42 +141,52 @@ export default function AdminFormModal({
                   return true;
                 },
               })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+              className={`w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary ${
+                isEditing && !esSuperAdmin
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : ''
+              }`}
             />
+            {isEditing && !esSuperAdmin && (
+              <p className="text-xs text-gray-400 mt-1">
+                Solo el superadmin puede cambiar la contraseña
+              </p>
+            )}
             {errors.password && (
               <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
             )}
           </div>
 
-          {/* Rol */}
-          <div>
-            <label className="block text-sm font-medium text-neutral mb-1">
-              Rol <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register('rol', { required: 'El rol es obligatorio' })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
-            >
-              <option value="admin">Admin</option>
-              {/* Solo superadmin puede crear otro superadmin — HU-05 */}
-              {esSuperAdmin && (
-                <option value="superadmin">Super Admin</option>
+          {/* Rol — oculto si está editando su propia cuenta */}
+          {!isOwnAccount && (
+            <div>
+              <label className="block text-sm font-medium text-neutral mb-1">
+                Rol <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register('rol', { required: 'El rol es obligatorio' })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+              >
+                <option value="admin">Admin</option>
+                {esSuperAdmin && (
+                  <option value="superadmin">Super Admin</option>
+                )}
+              </select>
+              {errors.rol && (
+                <p className="text-xs text-red-500 mt-1">{errors.rol.message}</p>
               )}
-            </select>
-            {errors.rol && (
-              <p className="text-xs text-red-500 mt-1">{errors.rol.message}</p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Teléfono — opcional */}
           <div>
             <label className="block text-sm font-medium text-neutral mb-1">
-              Teléfono{' '}
-              <span className="text-gray-400 text-xs">(opcional)</span>
+              Teléfono <span className="text-gray-400 text-xs">(opcional)</span>
             </label>
             <input
               type="tel"
               inputMode="numeric"
+              placeholder="Ej. 3001234567"
               onKeyDown={(e) => {
                 const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '+', '-'];
                 if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();

@@ -70,6 +70,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
                   message: 'El nombre solo puede contener letras y espacios',
                 },
               })}
+              placeholder="Ej. María García López"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             {errors.nombre && (
@@ -88,6 +89,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
                 required: 'El correo es obligatorio',
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Correo inválido' },
               })}
+              placeholder="Ej. maria.garcia@correo.com"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             {errors.correo && (
@@ -95,32 +97,49 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
             )}
           </div>
 
-          {/* Contraseña — solo visible para SuperAdmin */}
-          {isSuperAdmin && (
-            <div>
-              <label className="block text-sm font-medium text-neutral mb-1">
-                {isEditing
-                  ? 'Nueva contraseña (dejar vacío para no cambiar)'
-                  : <>Contraseña <span className="text-red-500">*</span></>}
-              </label>
-              <input
-                type="password"
-                {...register('password', {
-                  required: isEditing ? false : 'La contraseña es obligatoria',
-                  validate: (value) => {
-                    if (!isEditing && value.length < 6) return 'Mínimo 6 caracteres';
-                    if (isEditing && value.length > 0 && value.length < 6)
-                      return 'Si vas a cambiar la contraseña, debe tener al menos 6 caracteres';
-                    return true;
-                  },
-                })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-              {errors.password && (
-                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
-              )}
-            </div>
-          )}
+          {/* Contraseña
+              - Crear: obligatoria para admin y superadmin (RF-07)
+              - Editar: visible siempre, editable solo para superadmin (RF-38) */}
+          <div>
+            <label className="block text-sm font-medium text-neutral mb-1">
+              {isEditing
+                ? 'Contraseña'
+                : <> Contraseña <span className="text-red-500">*</span> </>}
+            </label>
+            <input
+              type="password"
+              disabled={isEditing && !isSuperAdmin}
+              placeholder={
+                isEditing && !isSuperAdmin
+                  ? '••••••••'
+                  : isEditing
+                  ? 'Dejar vacío para no cambiar'
+                  : 'Mínimo 6 caracteres'
+              }
+              {...register('password', {
+                required: isEditing ? false : 'La contraseña es obligatoria',
+                validate: (value) => {
+                  if (!isEditing && value.length < 6) return 'Mínimo 6 caracteres';
+                  if (isEditing && value.length > 0 && value.length < 6)
+                    return 'Si vas a cambiar la contraseña, debe tener al menos 6 caracteres';
+                  return true;
+                },
+              })}
+              className={`w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary ${
+                isEditing && !isSuperAdmin
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : ''
+              }`}
+            />
+            {isEditing && !isSuperAdmin && (
+              <p className="text-xs text-gray-400 mt-1">
+                Solo el superadmin puede cambiar la contraseña
+              </p>
+            )}
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+            )}
+          </div>
 
           {/* Torre y Apartamento */}
           <div className="grid grid-cols-2 gap-3">
@@ -129,6 +148,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
                 Torre <span className="text-red-500">*</span>
               </label>
               <input
+                placeholder="Ej. Torre 3 / Bloque B"
                 {...register('torre', { required: 'La torre es obligatoria' })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
               />
@@ -141,6 +161,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
                 Apartamento <span className="text-red-500">*</span>
               </label>
               <input
+                placeholder="Ej. 402 / Casa 12"
                 {...register('apartamento', { required: 'El apartamento es obligatorio' })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
               />
@@ -158,8 +179,9 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
             <input
               type="tel"
               inputMode="numeric"
+              placeholder="Ej. 3001234567"
               onKeyDown={(e) => {
-                const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','+','-'];
+                const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '+', '-'];
                 if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
               }}
               {...register('telefono', {
@@ -175,7 +197,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
             )}
           </div>
 
-          {/* Tipo de residente — opcional */}
+          {/* Tipo de residente */}
           <div>
             <label className="block text-sm font-medium text-neutral mb-1">
               Tipo de residente <span className="text-gray-400 text-xs">(opcional)</span>
@@ -190,7 +212,7 @@ export default function ResidentFormModal({ onClose, onSave, residentToEdit = nu
             </select>
           </div>
 
-          {/* Estado — solo visible al crear */}
+          {/* Estado — solo al crear */}
           {!isEditing && (
             <div className="flex items-center gap-2">
               <input
