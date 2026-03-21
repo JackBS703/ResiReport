@@ -49,7 +49,7 @@ const seed = async () => {
     // --- ESTADOS BASE ---
     const estados = [
       { nombre: 'Pendiente',    color: '#FFA500', isDefault: true },
-      { nombre: 'En revisión',  color: '#3B82F6', isDefault: true },
+      { nombre: 'En proceso',  color: '#3B82F6', isDefault: true },
       { nombre: 'Resuelto',     color: '#22C55E', isDefault: true },
       { nombre: 'Rechazado',    color: '#EF4444', isDefault: true },
     ];
