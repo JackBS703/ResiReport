@@ -4,7 +4,7 @@ const ComplaintStatus = require('../models/ComplaintStatus');
 // GET /api/complaints — HU-14: listar todas con filtros
 const getComplaints = async (req, res, next) => {
   try {
-    const { estado, tipo, prioridad, fechaDesde, fechaHasta, search } = req.query;
+    const { estado, tipo, prioridad, fechaDesde, fechaHasta, search, page = 1, limit = 10 } = req.query;
 
     const filtro = {};
 
@@ -27,16 +27,29 @@ const getComplaints = async (req, res, next) => {
       ];
     }
 
-    const complaints = await Complaint.find(filtro)
-      .populate('tipo',      'nombre')
-      .populate('estado',    'nombre')
-      .populate('residente', 'nombre correo torre apartamento')
-      .sort({ createdAt: -1 });
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit))); // máx 50 por seguridad
+    const skip     = (pageNum - 1) * limitNum;
+
+    // Ejecuta ambas queries en paralelo para no hacer 2 viajes secuenciales
+    const [complaints, total] = await Promise.all([
+      Complaint.find(filtro)
+        .populate('tipo',     'nombre')
+        .populate('estado',   'nombre')
+        .populate('residente','nombre correo torre apartamento')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Complaint.countDocuments(filtro), // total real con filtros aplicados
+    ]);
 
     res.status(200).json({
-      ok: true,
-      data: complaints,
-      total: complaints.length,
+      ok:       true,
+      data:     complaints,
+      total,                     // total de registros que coinciden con el filtro
+      page:     pageNum,
+      limit:    limitNum,
+      pages:    Math.ceil(total / limitNum), // total de páginas
     });
   } catch (error) {
     next(error);

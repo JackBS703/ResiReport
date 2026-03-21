@@ -12,7 +12,8 @@ import Navbar from '@/components/shared/Navbar';
 // Páginas Admin
 import AllComplaintsPage from '@/pages/admin/AllComplaintsPage';
 import ComplaintDetailAdminPage from '@/pages/admin/ComplaintDetailAdminPage';
-import ResidentsPage from '@/pages/admin/ResidentsPage'; // ← NUEVO
+import ResidentsPage from '@/pages/admin/ResidentsPage';
+import AdminsPage from '@/pages/admin/AdminsPage'; // ← NUEVO
 
 // Páginas Resident (placeholders)
 const MyComplaintsPage = () => <div>MyComplaints — próximamente</div>;
@@ -33,12 +34,12 @@ const LayoutConNavbar = () => (
         <Route element={<RoleRoute roles={[ROLES.ADMIN, ROLES.SUPERADMIN]} />}>
           <Route path="/denuncias" element={<AllComplaintsPage />} />
           <Route path="/denuncias/:id" element={<ComplaintDetailAdminPage />} />
-          <Route path="/residentes" element={<ResidentsPage />} /> {/* ← NUEVO */}
+          <Route path="/residentes" element={<ResidentsPage />} />
         </Route>
 
         {/* ── Solo SuperAdmin ── */}
         <Route element={<RoleRoute roles={[ROLES.SUPERADMIN]} />}>
-          <Route path="/administradores" element={<div>AdminsPage — próximamente</div>} />
+          <Route path="/administradores" element={<AdminsPage />} /> {/* ← NUEVO */}
         </Route>
 
         {/* ── Resident ── */}
