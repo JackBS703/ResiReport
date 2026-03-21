@@ -23,7 +23,18 @@ const AllComplaintsPage = () => {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroPrioridad, setFiltroPrioridad] = useState('');
 
+  // ── Paginación ──────────────────────────────────────────
+  const [page, setPage]   = useState(1);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  // ────────────────────────────────────────────────────────
+
   const searchDebounced = useDebounce(search, 400);
+
+  // Cuando cambia cualquier filtro, vuelve a la página 1
+  useEffect(() => {
+    setPage(1);
+  }, [searchDebounced, filtroEstado, filtroPrioridad]);
 
   const cargarComplaints = useCallback(async () => {
     setIsLoading(true);
@@ -32,15 +43,19 @@ const AllComplaintsPage = () => {
       if (searchDebounced)  params.search    = searchDebounced;
       if (filtroEstado)     params.estado    = filtroEstado;
       if (filtroPrioridad)  params.prioridad = filtroPrioridad;
+      params.page  = page;
+      params.limit = 10;
 
       const res = await getComplaints(params);
       setComplaints(res.data.data);
+      setTotal(res.data.total);   // total real con filtros
+      setPages(res.data.pages);   // cuántas páginas hay
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  }, [searchDebounced, filtroEstado, filtroPrioridad]);
+  }, [searchDebounced, filtroEstado, filtroPrioridad, page]); // page como dependencia
 
   // Carga estados para el filtro
   useEffect(() => {
@@ -64,7 +79,7 @@ const AllComplaintsPage = () => {
 
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-800">Denuncias</h1>
-        <TotalCount total={complaints.length} label="denuncia(s)" />
+        <TotalCount total={total} label="denuncia(s)" /> {/* ← usa total real del backend */}
       </div>
 
       {/* Filtros */}
@@ -115,47 +130,73 @@ const AllComplaintsPage = () => {
           descripcion="No hay denuncias que coincidan con los filtros aplicados."
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium">
-              <tr>
-                <th className="text-left px-4 py-3">Título</th>
-                <th className="text-left px-4 py-3">Residente</th>
-                <th className="text-left px-4 py-3">Tipo</th>
-                <th className="text-left px-4 py-3">Estado</th>
-                <th className="text-left px-4 py-3">Prioridad</th>
-                <th className="text-left px-4 py-3">Fecha</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {complaints.map((c) => (
-                <tr key={c._id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-800 max-w-[200px] truncate">
-                    {c.titulo}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{c.residente?.nombre}</td>
-                  <td className="px-4 py-3 text-slate-600">{c.tipo?.nombre}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge estado={c.estado?.nombre} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <PriorityBadge prioridad={c.prioridad} />
-                  </td>
-                  <td className="px-4 py-3 text-slate-500">{formatDateShort(c.createdAt)}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/denuncias/${c._id}`)}
-                      className="text-sm text-blue-600 hover:underline font-medium"
-                    >
-                      Ver detalle
-                    </button>
-                  </td>
+        <>
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-600 font-medium">
+                <tr>
+                  <th className="text-left px-4 py-3">Título</th>
+                  <th className="text-left px-4 py-3">Residente</th>
+                  <th className="text-left px-4 py-3">Tipo</th>
+                  <th className="text-left px-4 py-3">Estado</th>
+                  <th className="text-left px-4 py-3">Prioridad</th>
+                  <th className="text-left px-4 py-3">Fecha</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {complaints.map((c) => (
+                  <tr key={c._id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-800 max-w-[200px] truncate">
+                      {c.titulo}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{c.residente?.nombre}</td>
+                    <td className="px-4 py-3 text-slate-600">{c.tipo?.nombre}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge estado={c.estado?.nombre} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <PriorityBadge prioridad={c.prioridad} />
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">{formatDateShort(c.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => navigate(`/denuncias/${c._id}`)}
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                      >
+                        Ver detalle
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ── Paginación ─────────────────────────────────────── */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-500">
+              Página {page} de {pages}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+                className="px-3 py-1 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50"
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= pages}
+                className="px-3 py-1 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50"
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
+          {/* ────────────────────────────────────────────────────── */}
+        </>
       )}
     </div>
   );
