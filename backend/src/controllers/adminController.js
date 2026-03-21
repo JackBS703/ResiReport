@@ -1,38 +1,24 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const {
-  BCRYPT_ROUNDS
-} = require('../config/env');
+const { BCRYPT_ROUNDS } = require('../config/env');
 
 // GET /api/admins
 const listarAdmins = async (req, res) => {
   try {
-    const {
-      search = ''
-    } = req.query;
+    const { search = '' } = req.query;
 
     const filtro = {
-      rol: {
-        $in: ['admin', 'superadmin']
-      },
+      rol: { $in: ['admin', 'superadmin'] },
     };
 
     if (search.trim()) {
       const regex = new RegExp(search.trim(), 'i');
-      filtro.$or = [{
-          nombre: regex
-        },
-        {
-          correo: regex
-        },
-      ];
+      filtro.$or = [{ nombre: regex }, { correo: regex }];
     }
 
     const admins = await User.find(filtro)
       .select('-password')
-      .sort({
-        createdAt: -1
-      });
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       ok: true,
@@ -51,15 +37,11 @@ const listarAdmins = async (req, res) => {
 // GET /api/admins/:id
 const obtenerAdminPorId = async (req, res) => {
   try {
-    const {
-      id
-    } = req.params;
+    const { id } = req.params;
 
     const admin = await User.findOne({
       _id: id,
-      rol: {
-        $in: ['admin', 'superadmin']
-      },
+      rol: { $in: ['admin', 'superadmin'] },
     }).select('-password');
 
     if (!admin) {
@@ -69,10 +51,7 @@ const obtenerAdminPorId = async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      ok: true,
-      data: admin,
-    });
+    return res.status(200).json({ ok: true, data: admin });
   } catch (error) {
     return res.status(500).json({
       ok: false,
@@ -85,14 +64,7 @@ const obtenerAdminPorId = async (req, res) => {
 // POST /api/admins
 const crearAdmin = async (req, res) => {
   try {
-    const {
-      nombre,
-      correo,
-      password,
-      rol,
-      telefono,
-      isActive
-    } = req.body;
+    const { nombre, correo, password, rol, telefono, isActive } = req.body;
 
     if (!nombre || !correo || !password || !rol) {
       return res.status(400).json({
@@ -110,9 +82,7 @@ const crearAdmin = async (req, res) => {
 
     const correoNormalizado = correo.trim().toLowerCase();
 
-    const existeCorreo = await User.findOne({
-      correo: correoNormalizado
-    });
+    const existeCorreo = await User.findOne({ correo: correoNormalizado });
     if (existeCorreo) {
       return res.status(409).json({
         ok: false,
@@ -131,11 +101,7 @@ const crearAdmin = async (req, res) => {
       isActive: typeof isActive === 'boolean' ? isActive : true,
     });
 
-    // Eliminar password del objeto de respuesta de forma segura
-    const {
-      password: _pw,
-      ...adminCreado
-    } = nuevoAdmin.toObject();
+    const { password: _pw, ...adminCreado } = nuevoAdmin.toObject();
 
     return res.status(201).json({
       ok: true,
@@ -154,23 +120,12 @@ const crearAdmin = async (req, res) => {
 // PUT /api/admins/:id
 const actualizarAdmin = async (req, res) => {
   try {
-    const {
-      id
-    } = req.params;
-    const {
-      nombre,
-      correo,
-      password,
-      rol,
-      telefono,
-      isActive
-    } = req.body;
+    const { id } = req.params;
+    const { nombre, correo, password, rol, telefono, isActive } = req.body;
 
     const adminActual = await User.findOne({
       _id: id,
-      rol: {
-        $in: ['admin', 'superadmin']
-      },
+      rol: { $in: ['admin', 'superadmin'] },
     });
 
     if (!adminActual) {
@@ -180,14 +135,36 @@ const actualizarAdmin = async (req, res) => {
       });
     }
 
+    // Superadmin no puede cambiar su propio rol
+    if (rol && rol !== adminActual.rol && req.user.userId.toString() === id) {
+      return res.status(403).json({
+        ok: false,
+        message: 'No puedes cambiar tu propio rol',
+      });
+    }
+
+    // Si se degrada un superadmin, debe quedar al menos uno activo
+    if (rol && rol !== 'superadmin' && adminActual.rol === 'superadmin') {
+      const superadminsActivos = await User.countDocuments({
+        rol: 'superadmin',
+        isActive: true,
+        _id: { $ne: id },
+      });
+
+      if (superadminsActivos === 0) {
+        return res.status(403).json({
+          ok: false,
+          message: 'Debe haber al menos un superadmin activo en el sistema',
+        });
+      }
+    }
+
     const correoNormalizado = correo?.trim().toLowerCase();
 
     if (correoNormalizado && correoNormalizado !== adminActual.correo) {
       const correoExiste = await User.findOne({
         correo: correoNormalizado,
-        _id: {
-          $ne: id
-        },
+        _id: { $ne: id },
       });
 
       if (correoExiste) {
@@ -206,34 +183,22 @@ const actualizarAdmin = async (req, res) => {
     }
 
     const actualizacion = {
-      ...(nombre !== undefined && {
-        nombre: nombre.trim()
-      }),
-      ...(correoNormalizado && {
-        correo: correoNormalizado
-      }),
-      ...(rol && {
-        rol
-      }),
-      ...(telefono !== undefined && {
-        telefono: telefono?.trim() || null
-      }),
-      ...(typeof isActive === 'boolean' && {
-        isActive
-      }),
+      ...(nombre !== undefined && { nombre: nombre.trim() }),
+      ...(correoNormalizado && { correo: correoNormalizado }),
+      ...(rol && { rol }),
+      ...(telefono !== undefined && { telefono: telefono?.trim() || null }),
+      ...(typeof isActive === 'boolean' && { isActive }),
     };
 
-    // HU-20 / RF-39: solo actualiza si el superadmin escribe una contraseña nueva
+    // RF-39: solo actualiza contraseña si se envía una nueva
     if (password && password.trim()) {
       actualizacion.password = await bcrypt.hash(password.trim(), BCRYPT_ROUNDS);
     }
 
     const adminActualizado = await User.findByIdAndUpdate(
       id,
-      actualizacion, {
-        new: true,
-        runValidators: true
-      }
+      actualizacion,
+      { new: true, runValidators: true }
     ).select('-password');
 
     return res.status(200).json({
@@ -253,21 +218,18 @@ const actualizarAdmin = async (req, res) => {
 // PATCH /api/admins/:id/status
 const toggleEstadoAdmin = async (req, res) => {
   try {
-    const {
-      id
-    } = req.params;
-    const {
-      isActive
-    } = req.body;
-    if (req.user && req.user.userId.toString() === id && isActive === false) {
-      return res.status(403).json({
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({
         ok: false,
-        message: 'No puedes desactivar tu propia cuenta',
+        message: 'El campo isActive debe ser booleano',
       });
     }
 
-    // HU-06 / RF-11: impedir auto-desactivación del superadmin
-    if (req.user && req.user.id === id && isActive === false) {
+    // RF-11: superadmin no puede desactivar su propia cuenta
+    if (req.user.userId.toString() === id && isActive === false) {
       return res.status(403).json({
         ok: false,
         message: 'No puedes desactivar tu propia cuenta',
@@ -276,9 +238,7 @@ const toggleEstadoAdmin = async (req, res) => {
 
     const admin = await User.findOne({
       _id: id,
-      rol: {
-        $in: ['admin', 'superadmin']
-      },
+      rol: { $in: ['admin', 'superadmin'] },
     });
 
     if (!admin) {
@@ -288,12 +248,26 @@ const toggleEstadoAdmin = async (req, res) => {
       });
     }
 
-    const adminActualizado = await User.findByIdAndUpdate(
-      id, {
-        isActive
-      }, {
-        new: true
+    // Debe quedar al menos un superadmin activo
+    if (isActive === false && admin.rol === 'superadmin') {
+      const superadminsActivos = await User.countDocuments({
+        rol: 'superadmin',
+        isActive: true,
+        _id: { $ne: id },
+      });
+
+      if (superadminsActivos === 0) {
+        return res.status(403).json({
+          ok: false,
+          message: 'Debe haber al menos un superadmin activo en el sistema',
+        });
       }
+    }
+
+    const adminActualizado = await User.findByIdAndUpdate(
+      id,
+      { isActive },
+      { new: true }
     ).select('-password');
 
     return res.status(200).json({
