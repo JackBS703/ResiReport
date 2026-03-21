@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const ComplaintType = require('../models/ComplaintType');
 const ComplaintStatus = require('../models/ComplaintStatus');
-require('dotenv').config({ path: 'backend/.env' })
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+
 
 const seed = async () => {
   try {
