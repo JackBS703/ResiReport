@@ -20,10 +20,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Si es 401 y NO estamos ya en la ruta de login intentando ingresar
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/login'; 
     }
     return Promise.reject(error);
   }
