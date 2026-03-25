@@ -26,26 +26,26 @@ export const deleteComplaintType = (id) =>
   axiosInstance.delete(`/catalog/types/${id}`);
 
 // ── Estados de Denuncia ──────────────────────────────────
-// GET /api/complaint-statuses
+// GET /api/catalog/statuses
 export const getComplaintStatuses = () =>
-  axiosInstance.get('/complaint-statuses');
+  axiosInstance.get('/catalog/statuses');
 
-// GET /api/complaint-statuses/active
+// GET /api/catalog/statuses/active
 export const getActiveComplaintStatuses = () =>
   axiosInstance.get('/catalog/statuses/active');
 
-// POST /api/complaint-statuses
+// POST /api/catalog/statuses
 export const createComplaintStatus = (data) =>
-  axiosInstance.post('/complaint-statuses', data);
+  axiosInstance.post('/catalog/statuses', data);
 
-// PUT /api/complaint-statuses/:id
+// PUT /api/catalog/statuses/:id
 export const updateComplaintStatus = (id, data) =>
-  axiosInstance.put(`/complaint-statuses/${id}`, data);
+  axiosInstance.put(`/catalog/statuses/${id}`, data);
 
-// PATCH /api/complaint-statuses/:id/status
+// PATCH /api/catalog/statuses/:id/status
 export const toggleComplaintStatusActive = (id, isActive) =>
-  axiosInstance.patch(`/complaint-statuses/${id}/status`, { isActive });
+  axiosInstance.patch(`/catalog/statuses/${id}/status`, { isActive });
 
-// DELETE /api/complaint-statuses/:id  (bloqueado si isDefault === true)
+// DELETE /api/catalog/statuses/:id  (bloqueado si isDefault === true)
 export const deleteComplaintStatus = (id) =>
-  axiosInstance.delete(`/complaint-statuses/${id}`);
+  axiosInstance.delete(`/catalog/statuses/${id}`);

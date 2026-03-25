@@ -97,6 +97,100 @@ const deleteType = async (req, res, next) => {
   }
 };
 
+// ── ESTADOS DE DENUNCIA ──
+
+// GET /api/catalog/statuses — todos los estados (para Admin)
+const getStatuses = async (req, res, next) => {
+  try {
+    const estados = await ComplaintStatus.find().sort({ isDefault: -1, nombre: 1 });
+    // Mapeo los datos al formato que espera el frontend (en caso que usen name en vez de nombre)
+    const mappedStatuses = estados.map(e => ({
+      _id: e._id,
+      name: e.nombre,
+      color: e.color,
+      isDefault: e.isDefault,
+      isActive: e.isActive
+    }));
+    res.status(200).json({ ok: true, data: mappedStatuses });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/catalog/statuses
+const createStatus = async (req, res, next) => {
+  try {
+    const { name, color, isActive } = req.body;
+    const existe = await ComplaintStatus.findOne({ nombre: new RegExp('^' + name + '$', 'i') });
+    if (existe) {
+      return res.status(409).json({ ok: false, message: 'El estado ya existe' });
+    }
+    const nuevo = await ComplaintStatus.create({ nombre: name, color, isActive, isDefault: false });
+    res.status(201).json({ ok: true, message: 'Estado creado', data: nuevo });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/catalog/statuses/:id
+const updateStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, color, isActive } = req.body;
+    
+    // Si isDefault, talvez no queramos dejar cambiar el nombre libremente (o sí, según reglas). Lo permitiremos pero el isDefault no cambiará.
+    const existe = await ComplaintStatus.findOne({ nombre: new RegExp('^' + name + '$', 'i'), _id: { $ne: id } });
+    if (existe) {
+      return res.status(409).json({ ok: false, message: 'El nombre ya está en uso' });
+    }
+    
+    // No permitir cambiar isDefault, solo campos UI
+    const estado = await ComplaintStatus.findById(id);
+    if (!estado) return res.status(404).json({ ok: false, message: 'No encontrado' });
+
+    estado.nombre = name;
+    estado.color = color;
+    estado.isActive = isActive;
+
+    await estado.save();
+
+    res.status(200).json({ ok: true, message: 'Estado actualizado', data: estado });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PATCH /api/catalog/statuses/:id/status
+const toggleStatusActive = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    const estado = await ComplaintStatus.findByIdAndUpdate(id, { isActive }, { new: true });
+    if (!estado) return res.status(404).json({ ok: false, message: 'No encontrado' });
+    res.status(200).json({ ok: true, message: 'Estado activo actualizado', data: estado });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE /api/catalog/statuses/:id
+const deleteStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const estado = await ComplaintStatus.findById(id);
+    if (!estado) return res.status(404).json({ ok: false, message: 'No encontrado' });
+
+    if (estado.isDefault) {
+      return res.status(403).json({ ok: false, message: 'Los estados por defecto no se pueden eliminar' });
+    }
+
+    await ComplaintStatus.findByIdAndDelete(id);
+    res.status(200).json({ ok: true, message: 'Estado eliminado' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getActiveTypes,
   getActiveStatuses,
@@ -104,5 +198,10 @@ module.exports = {
   createType,
   updateType,
   toggleTypeStatus,
-  deleteType
+  deleteType,
+  getStatuses,
+  createStatus,
+  updateStatus,
+  toggleStatusActive,
+  deleteStatus
 };

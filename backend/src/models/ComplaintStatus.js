@@ -11,6 +11,10 @@ const complaintStatusSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    color: {
+      type: String,
+      default: '#9CA3AF',
+    },
     isDefault: {
       type: Boolean,
       default: false, // true solo para los 4 estados mínimos del sistema (RF-19)

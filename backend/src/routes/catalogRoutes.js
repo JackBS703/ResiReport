@@ -1,12 +1,19 @@
 const express = require('express');
 const {
+  // Tipos
   getActiveTypes,
-  getActiveStatuses,
   getTypes,
   createType,
   updateType,
   toggleTypeStatus,
-  deleteType
+  deleteType,
+  // Estados
+  getActiveStatuses,
+  getStatuses,
+  createStatus,
+  updateStatus,
+  toggleStatusActive,
+  deleteStatus
 } = require('../controllers/catalogController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
@@ -24,5 +31,12 @@ router.post('/types', createType);
 router.put('/types/:id', updateType);
 router.patch('/types/:id/status', toggleTypeStatus);
 router.delete('/types/:id', deleteType);
+
+// CRUD de estados de denuncia
+router.get('/statuses', getStatuses);
+router.post('/statuses', createStatus);
+router.put('/statuses/:id', updateStatus);
+router.patch('/statuses/:id/status', toggleStatusActive);
+router.delete('/statuses/:id', deleteStatus);
 
 module.exports = router;

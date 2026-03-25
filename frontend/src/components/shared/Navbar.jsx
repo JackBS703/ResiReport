@@ -31,6 +31,12 @@ const NAV_LINKS = [
     roles: [ROLES.ADMIN, ROLES.SUPERADMIN],
   },
   {
+    to: '/estados-denuncia',
+    label: 'Catálogos (Estados)',
+    icon: BookOpen,
+    roles: [ROLES.ADMIN, ROLES.SUPERADMIN],
+  },
+  {
     to: '/administradores',
     label: 'Administradores',
     icon: ShieldCheck,
