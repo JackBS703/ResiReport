@@ -25,8 +25,8 @@ const NAV_LINKS = [
     roles: [ROLES.ADMIN, ROLES.SUPERADMIN],
   },
   {
-    to: '/catalogos',
-    label: 'Catálogos',
+    to: '/tipos-denuncia',
+    label: 'Catálogos (Tipos)',
     icon: BookOpen,
     roles: [ROLES.ADMIN, ROLES.SUPERADMIN],
   },

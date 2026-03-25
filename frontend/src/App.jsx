@@ -14,6 +14,7 @@ import AllComplaintsPage from '@/pages/admin/AllComplaintsPage';
 import ComplaintDetailAdminPage from '@/pages/admin/ComplaintDetailAdminPage';
 import ResidentsPage from '@/pages/admin/ResidentsPage';
 import AdminsPage from '@/pages/admin/AdminsPage'; // ← NUEVO
+import ComplaintTypesPage from '@/pages/admin/ComplaintTypesPage'; // ← NUEVO
 
 // Páginas Resident (placeholders)
 const MyComplaintsPage = () => <div>MyComplaints — próximamente</div>;
@@ -35,6 +36,7 @@ const LayoutConNavbar = () => (
           <Route path="/denuncias" element={<AllComplaintsPage />} />
           <Route path="/denuncias/:id" element={<ComplaintDetailAdminPage />} />
           <Route path="/residentes" element={<ResidentsPage />} />
+          <Route path="/tipos-denuncia" element={<ComplaintTypesPage />} /> {/* ← NUEVO */}
         </Route>
 
         {/* ── Solo SuperAdmin ── */}

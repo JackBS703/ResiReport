@@ -1,29 +1,29 @@
 import axiosInstance from './axiosInstance';
 
 // ── Tipos de Denuncia ────────────────────────────────────
-// GET /api/complaint-types
+// GET /api/catalog/types
 export const getComplaintTypes = () =>
-  axiosInstance.get('/complaint-types');
+  axiosInstance.get('/catalog/types');
 
-// GET /api/complaint-types/active  (solo para formularios)
+// GET /api/catalog/types/active  (solo para formularios)
 export const getActiveComplaintTypes = () =>
   axiosInstance.get('/catalog/types/active');
 
-// POST /api/complaint-types
+// POST /api/catalog/types
 export const createComplaintType = (data) =>
-  axiosInstance.post('/complaint-types', data);
+  axiosInstance.post('/catalog/types', data);
 
-// PUT /api/complaint-types/:id
+// PUT /api/catalog/types/:id
 export const updateComplaintType = (id, data) =>
-  axiosInstance.put(`/complaint-types/${id}`, data);
+  axiosInstance.put(`/catalog/types/${id}`, data);
 
-// PATCH /api/complaint-types/:id/status
+// PATCH /api/catalog/types/:id/status
 export const toggleComplaintTypeStatus = (id, isActive) =>
-  axiosInstance.patch(`/complaint-types/${id}/status`, { isActive });
+  axiosInstance.patch(`/catalog/types/${id}/status`, { isActive });
 
-// DELETE /api/complaint-types/:id  (solo si no tiene complaints asociadas)
+// DELETE /api/catalog/types/:id  (solo si no tiene complaints asociadas)
 export const deleteComplaintType = (id) =>
-  axiosInstance.delete(`/complaint-types/${id}`);
+  axiosInstance.delete(`/catalog/types/${id}`);
 
 // ── Estados de Denuncia ──────────────────────────────────
 // GET /api/complaint-statuses
