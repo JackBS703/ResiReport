@@ -304,9 +304,12 @@ const cambiarPrioridad = async (req, res, next) => {
       { prioridad },
       { new: true, runValidators: true }
     )
-      .populate('tipo',     'nombre')
-      .populate('estado',   'nombre')
-      .populate('residente','nombre correo');
+      .populate('tipo', 'nombre')
+      .populate('estado', 'nombre color')
+      .populate('residente', 'nombre correo')
+      .populate('statusHistory.estadoNuevo', 'nombre')
+      .populate('statusHistory.estadoAnterior', 'nombre')
+      .populate('statusHistory.cambiadoPor', 'nombre rol');
 
     if (!complaint) {
       return res.status(404).json({ ok: false, message: 'Denuncia no encontrada' });
