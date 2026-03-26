@@ -171,7 +171,7 @@ const ComplaintDetailAdminPage = () => {
         {complaint.statusHistory.length === 0 ? (
           <p className="text-sm text-slate-400">Sin cambios registrados.</p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
             {[...complaint.statusHistory].reverse().map((h, i) => (
               <li key={i} className="text-sm text-slate-600 flex items-center gap-2">
                 <span className="text-slate-400">{formatDate(h.fecha)}</span>

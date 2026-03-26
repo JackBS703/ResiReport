@@ -392,7 +392,7 @@ const MyComplaintsPage = () => {
               <div>
                 <h3 className="text-sm font-semibold text-slate-700">Historial de estados</h3>
                 {selectedComplaint.statusHistory?.length ? (
-                  <ul className="mt-2 space-y-2">
+                  <ul className="mt-2 space-y-2 max-h-48 overflow-y-auto pr-1">
                     {[...selectedComplaint.statusHistory].reverse().map((h, index) => (
                       <li key={`${h.fecha}-${index}`} className=" rounded-lg border border-slate-200 p-2">
                         <div className="text-xs text-slate-500">{new Date(h.fecha).toLocaleString()}</div>
