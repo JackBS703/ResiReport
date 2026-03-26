@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 // Reconstruimos __dirname porque Vite usa ESM y no lo provee por defecto
@@ -19,13 +18,9 @@ export default defineConfig({
     },
   },
   server: {
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, './localhost-key.pem')),
-      cert: fs.readFileSync(path.resolve(__dirname, './localhost-cert.pem')),
-    },
     proxy: {
       // En desarrollo, /api/... se redirige al backend automáticamente
-      // Backend puede estar en https o http (aquí http)
+      // Evita hardcodear http://localhost:5000 en cada llamada de Axios
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,

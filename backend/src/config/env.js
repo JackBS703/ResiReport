@@ -2,9 +2,6 @@ require('dotenv').config();
 
 const env = {
   PORT: process.env.PORT || 5000,
-  HTTPS: process.env.HTTPS || 'false',
-  HTTPS_KEY: process.env.HTTPS_KEY || '',
-  HTTPS_CERT: process.env.HTTPS_CERT || '',
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
