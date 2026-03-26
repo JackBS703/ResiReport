@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { BCRYPT_ROUNDS } = require('../config/env');
 
 // GET /api/residents
 const getResidents = async (req, res, next) => {
@@ -84,7 +85,7 @@ const createResident = async (req, res, next) => {
       warnings.push(`Ya existe un residente registrado en Torre ${torre}, Apto ${apartamento}`);
     }
 
-    const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 10;
+const rounds = BCRYPT_ROUNDS;
     const hashedPassword = await bcrypt.hash(password, rounds);
 
     const resident = await User.create({
@@ -128,7 +129,7 @@ const updateResident = async (req, res, next) => {
     const { password, ...rest } = req.body;
 
     if (password) {
-      const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 10;
+  const rounds = BCRYPT_ROUNDS;
       rest.password = await bcrypt.hash(password, rounds);
     }
 
