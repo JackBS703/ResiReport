@@ -1,13 +1,15 @@
 const colorMap = {
-  alta:   'bg-red-100 text-red-700 border-red-200',
-  media:  'bg-yellow-100 text-yellow-700 border-yellow-200',
-  baja:   'bg-slate-100 text-slate-600 border-slate-200',
+  sinasignar: 'bg-slate-100 text-slate-500 border-slate-200',
+  alta: 'bg-red-100 text-red-700 border-red-200',
+  media: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  baja: 'bg-green-100 text-green-700 border-green-200',
 };
 
 const labelMap = {
-  alta:  '🔴 Alta',
-  media: '🟡 Media',
-  baja:  '⚪ Baja',
+  sinasignar: 'Sin asignar',
+  alta: 'Alta',
+  media: 'Media',
+  baja: 'Baja',
 };
 
 const PriorityBadge = ({ prioridad }) => {
