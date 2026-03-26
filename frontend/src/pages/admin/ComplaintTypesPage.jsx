@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import useAuth from '../../hooks/useAuth';
 import {
   getComplaintTypes,
   createComplaintType,
@@ -12,8 +11,6 @@ import { parseApiError } from '../../utils/parseApiError';
 import Swal from 'sweetalert2';
 
 export default function ComplaintTypesPage() {
-  const { user } = useAuth();
-
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

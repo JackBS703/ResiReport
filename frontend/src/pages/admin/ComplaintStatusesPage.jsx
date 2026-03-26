@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import useAuth from '../../hooks/useAuth';
 import {
   getComplaintStatuses,
   createComplaintStatus,
@@ -13,8 +12,6 @@ import Swal from 'sweetalert2';
 import StatusBadge from '../../components/shared/StatusBadge';
 
 export default function ComplaintStatusesPage() {
-  const { user } = useAuth();
-
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
