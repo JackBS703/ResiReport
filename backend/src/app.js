@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./middlewares/errorHandler');
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
 const adminRouter = require('./routes/adminRoutes');
@@ -25,7 +24,6 @@ app.get('/api/health', (req, res) => {
 // app.use('/api/residents', residentRoutes);
 // ...
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/catalog', catalogRoutes);
 app.use('/api/admins', adminRouter);
