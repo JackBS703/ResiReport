@@ -38,3 +38,5 @@ router.post('/statuses', createStatus);
 router.put('/statuses/:id', updateStatus);
 router.patch('/statuses/:id/status', toggleStatusActive);
 router.delete('/statuses/:id', deleteStatus);
+
+module.exports = router;

@@ -36,12 +36,5 @@ router.patch('/:id/status', roleMiddleware('admin', 'superadmin'), cambiarEstado
 
 // HU-17 — cambiar prioridad (solo admin)
 router.patch('/:id/priority', roleMiddleware('admin', 'superadmin'), cambiarPrioridad);
-=======
-// HU-16 — cambiar estado
-router.patch('/:id/status', cambiarEstado);
-
-// HU-17 — cambiar prioridad
-router.patch('/:id/priority', cambiarPrioridad);
->>>>>>> main
 
 module.exports = router;
