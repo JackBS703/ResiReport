@@ -17,11 +17,11 @@ import AdminsPage from '@/pages/admin/AdminsPage'; // ← NUEVO
 import ComplaintTypesPage from '@/pages/admin/ComplaintTypesPage';
 import ComplaintStatusesPage from '@/pages/admin/ComplaintStatusesPage'; // ← NUEVO
 
-// Páginas Resident (placeholders)
-const MyComplaintsPage = () => <div>MyComplaints — próximamente</div>;
-const CreateComplaintPage = () => <div>CreateComplaint — próximamente</div>;
-const ComplaintDetailPage = () => <div>ComplaintDetail — próximamente</div>;
-const ProfilePage = () => <div>Profile — próximamente</div>;
+// Páginas Resident
+import MyComplaintsPage from '@/pages/resident/MyComplaintsPage';
+import CreateComplaintPage from '@/pages/resident/CreateComplaintPage';
+import ComplaintDetailPage from '@/pages/resident/ComplaintDetailPage';
+import ProfilePage from '@/pages/resident/ProfilePage'; // we'll still use placeholder
 
 // Shared
 const NoAutorizado = () => <div className="p-8 text-red-500 font-semibold">403 — No autorizado</div>;

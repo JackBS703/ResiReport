@@ -28,6 +28,27 @@ const seed = async () => {
       console.log('⚠️  Admin ya existe, se omitió');
     }
 
+    // --- RESIDENTE DE PRUEBA ---
+    const residentExiste = await User.findOne({ correo: 'resident@resireport.com' });
+    if (!residentExiste) {
+      const saltResident = await bcrypt.genSalt(10);
+      const passwordResident = await bcrypt.hash('Resident1234', saltResident);
+      await User.create({
+        nombre: 'Residente Prueba',
+        correo: 'resident@resireport.com',
+        password: passwordResident,
+        rol: 'resident',
+        isActive: true,
+        telefono: '3000000000',
+        torre: 'A',
+        apartamento: '101',
+        tipoResidente: 'propietario',
+      });
+      console.log('🌱 Residente creado');
+    } else {
+      console.log('⚠️  Residente ya existe, se omitió');
+    }
+
     // --- TIPOS DE DENUNCIA ---
     const tipos = [
       { nombre: 'Ruido excesivo',      descripcion: 'Molestias por ruido en horas no permitidas' },

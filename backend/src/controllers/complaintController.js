@@ -35,7 +35,7 @@ const getComplaints = async (req, res, next) => {
     const [complaints, total] = await Promise.all([
       Complaint.find(filtro)
         .populate('tipo',     'nombre')
-        .populate('estado',   'nombre')
+        .populate('estado',   'nombre color')
         .populate('residente','nombre correo torre apartamento')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -61,7 +61,7 @@ const getComplaintById = async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
       .populate('tipo',    'nombre')
-      .populate('estado',  'nombre')
+      .populate('estado',  'nombre color')
       .populate('residente', 'nombre correo torre apartamento')
       .populate('statusHistory.estadoNuevo',    'nombre')
       .populate('statusHistory.estadoAnterior', 'nombre')
@@ -71,7 +71,177 @@ const getComplaintById = async (req, res, next) => {
       return res.status(404).json({ ok: false, message: 'Denuncia no encontrada' });
     }
 
+    // HU-12: autorizar solo propietario o admin
+    if (complaint.residente._id.toString() !== req.user.userId && !['admin', 'superadmin'].includes(req.user.rol)) {
+      return res.status(403).json({ ok: false, message: 'No autorizado para ver esta denuncia' });
+    }
+
     res.status(200).json({ ok: true, data: complaint });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/complaints — HU-10: crear denuncia
+const createComplaint = async (req, res, next) => {
+  try {
+    const { titulo, descripcion, ubicacion, tipo } = req.body;
+
+    // HU-22: validaciones específicas por campo
+    const errors = {};
+    if (!titulo || titulo.trim().length < 5) {
+      errors.titulo = 'El título es obligatorio y debe tener al menos 5 caracteres';
+    }
+    if (!descripcion || descripcion.trim().length < 10) {
+      errors.descripcion = 'La descripción es obligatoria y debe tener al menos 10 caracteres';
+    }
+    if (!ubicacion || ubicacion.trim().length < 5) {
+      errors.ubicacion = 'La ubicación es obligatoria y debe tener al menos 5 caracteres';
+    }
+    if (!tipo) {
+      errors.tipo = 'El tipo de denuncia es obligatorio';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ ok: false, message: 'Errores de validación', errors });
+    }
+
+    // Obtener estado "Registrada"
+    const estadoRegistrada = await ComplaintStatus.findOne({ nombre: 'Registrada' });
+    if (!estadoRegistrada) {
+      return res.status(500).json({ ok: false, message: 'Estado por defecto no encontrado' });
+    }
+
+    const complaint = await Complaint.create({
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      ubicacion: ubicacion.trim(),
+      tipo,
+      estado: estadoRegistrada._id,
+      residente: req.user.userId,
+      prioridad: 'sin_asignar',
+      statusHistory: [{
+        estadoAnterior: null,
+        estadoNuevo: estadoRegistrada._id,
+        cambiadoPor: req.user.userId,
+      }]
+    });
+
+    // Retornar con populates
+    const populated = await Complaint.findById(complaint._id)
+      .populate('tipo', 'nombre')
+      .populate('estado', 'nombre color')
+      .populate('residente', 'nombre correo torre apartamento');
+
+    res.status(201).json({ ok: true, data: populated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/complaints/mine — HU-11: ver mis denuncias
+const getMyComplaints = async (req, res, next) => {
+  try {
+    const { estado, tipo, prioridad, search, page = 1, limit = 10 } = req.query;
+
+    const filtro = { residente: req.user.userId };
+
+    if (estado)    filtro.estado    = estado;
+    if (tipo)      filtro.tipo      = tipo;
+    if (prioridad) filtro.prioridad = prioridad;
+
+    // Búsqueda por texto en título o descripción
+    if (search) {
+      filtro.$or = [
+        { titulo:    { $regex: search, $options: 'i' } },
+        { ubicacion: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit))); // máx 50 por seguridad
+    const skip     = (pageNum - 1) * limitNum;
+
+    const [complaints, total] = await Promise.all([
+      Complaint.find(filtro)
+        .populate('tipo', 'nombre')
+        .populate('estado', 'nombre color')
+        .populate('statusHistory.estadoNuevo', 'nombre')
+        .populate('statusHistory.estadoAnterior', 'nombre')
+        .populate('statusHistory.cambiadoPor', 'nombre rol')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Complaint.countDocuments(filtro),
+    ]);
+
+    res.status(200).json({
+      ok:       true,
+      data:     complaints,
+      total,
+      page:     pageNum,
+      limit:    limitNum,
+      pages:    Math.ceil(total / limitNum),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/complaints/:id — HU-13: editar denuncia solo si estado = "Registrada"
+const updateComplaint = async (req, res, next) => {
+  try {
+    const { titulo, descripcion, ubicacion, tipo } = req.body;
+
+    const complaint = await Complaint.findById(req.params.id).populate('estado', 'nombre color');
+    if (!complaint) {
+      return res.status(404).json({ ok: false, message: 'Denuncia no encontrada' });
+    }
+
+    // Autorización: propietario o admin
+    if (complaint.residente.toString() !== req.user.userId && !['admin', 'superadmin'].includes(req.user.rol)) {
+      return res.status(403).json({ ok: false, message: 'No autorizado para editar esta denuncia' });
+    }
+
+    // HU-13: solo si estado = "Registrada"
+    if (complaint.estado.nombre !== 'Registrada') {
+      return res.status(403).json({ ok: false, message: 'Solo se pueden editar denuncias en estado Registrada' });
+    }
+
+    // HU-22: validaciones
+    const errors = {};
+    if (titulo && titulo.trim().length < 5) {
+      errors.titulo = 'El título debe tener al menos 5 caracteres';
+    }
+    if (descripcion && descripcion.trim().length < 10) {
+      errors.descripcion = 'La descripción debe tener al menos 10 caracteres';
+    }
+    if (ubicacion && ubicacion.trim().length < 5) {
+      errors.ubicacion = 'La ubicación debe tener al menos 5 caracteres';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ ok: false, message: 'Errores de validación', errors });
+    }
+
+    // Actualizar solo campos permitidos
+    if (titulo) complaint.titulo = titulo.trim();
+    if (descripcion) complaint.descripcion = descripcion.trim();
+    if (ubicacion) complaint.ubicacion = ubicacion.trim();
+    if (tipo) complaint.tipo = tipo;
+
+    await complaint.save();
+
+    // Retornar actualizada
+    const updated = await Complaint.findById(complaint.id)
+      .populate('tipo', 'nombre')
+      .populate('estado', 'nombre color')
+      .populate('residente', 'nombre correo torre apartamento')
+      .populate('statusHistory.estadoNuevo', 'nombre')
+      .populate('statusHistory.estadoAnterior', 'nombre')
+      .populate('statusHistory.cambiadoPor', 'nombre rol');
+
+    res.status(200).json({ ok: true, data: updated });
   } catch (error) {
     next(error);
   }
@@ -110,7 +280,7 @@ const cambiarEstado = async (req, res, next) => {
     // Retorna la complaint actualizada con todos los campos populados
     const actualizada = await Complaint.findById(complaint._id)
       .populate('tipo',    'nombre')
-      .populate('estado',  'nombre')
+      .populate('estado',  'nombre color')
       .populate('residente', 'nombre correo')
       .populate('statusHistory.estadoNuevo',    'nombre')
       .populate('statusHistory.estadoAnterior', 'nombre')
@@ -126,7 +296,7 @@ const cambiarEstado = async (req, res, next) => {
 const cambiarPrioridad = async (req, res, next) => {
   try {
     const { prioridad } = req.body;
-    const validas = ['sinasignar', 'baja', 'media', 'alta'];
+    const validas = ['sin_asignar', 'baja', 'media', 'alta'];
 
     if (!validas.includes(prioridad)) {
       return res.status(400).json({ ok: false, message: 'Prioridad inválida' });
@@ -137,9 +307,12 @@ const cambiarPrioridad = async (req, res, next) => {
       { prioridad },
       { new: true, runValidators: true }
     )
-      .populate('tipo',     'nombre')
-      .populate('estado',   'nombre')
-      .populate('residente','nombre correo');
+      .populate('tipo', 'nombre')
+      .populate('estado', 'nombre color')
+      .populate('residente', 'nombre correo')
+      .populate('statusHistory.estadoNuevo', 'nombre')
+      .populate('statusHistory.estadoAnterior', 'nombre')
+      .populate('statusHistory.cambiadoPor', 'nombre rol');
 
     if (!complaint) {
       return res.status(404).json({ ok: false, message: 'Denuncia no encontrada' });
@@ -151,4 +324,4 @@ const cambiarPrioridad = async (req, res, next) => {
   }
 };
 
-module.exports = { getComplaints, getComplaintById, cambiarEstado, cambiarPrioridad };
+module.exports = { getComplaints, getComplaintById, createComplaint, getMyComplaints, updateComplaint, cambiarEstado, cambiarPrioridad };
