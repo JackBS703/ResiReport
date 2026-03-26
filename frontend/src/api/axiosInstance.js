@@ -1,0 +1,33 @@
+import axios from 'axios';
+
+const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5003/api',
+});
+
+// Interceptor de request: adjunta el token JWT automáticamente en cada petición
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Interceptor de response: si el token expiró, limpia sesión y redirige al login
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si es 401 y NO estamos ya en la ruta de login intentando ingresar
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login'; 
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;
