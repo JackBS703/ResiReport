@@ -92,7 +92,7 @@ const ComplaintDetailAdminPage = () => {
             {complaint.residente?.nombre} · {complaint.residente?.torre} · Apto {complaint.residente?.apartamento}
           </p>
         </div>
-        <StatusBadge estado={complaint.estado?.nombre} />
+        <StatusBadge estado={complaint.estado} />
       </div>
 
       {/* Detalle */}
@@ -177,7 +177,7 @@ const ComplaintDetailAdminPage = () => {
                 <span className="text-slate-400">{formatDate(h.fecha)}</span>
                 <span className="font-medium">{h.cambiadoPor?.nombre}</span>
                 <span className="text-slate-400">cambió a</span>
-                <StatusBadge estado={h.estadoNuevo?.nombre} />
+                <StatusBadge estado={h.estadoNuevo} />
               </li>
             ))}
           </ul>

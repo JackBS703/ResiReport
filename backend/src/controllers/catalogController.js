@@ -1,5 +1,6 @@
 const ComplaintType = require('../models/ComplaintType');
 const ComplaintStatus = require('../models/ComplaintStatus');
+const Complaint = require('../models/Complaint');
 
 // GET /api/catalog/types/active — tipos activos para formularios
 const getActiveTypes = async (req, res, next) => {
@@ -27,11 +28,15 @@ const getTypes = async (req, res, next) => {
     const tipos = await ComplaintType.find().sort({ nombre: 1 });
     // El frontend espera {name, description, isActive} pero la BD tiene {nombre, descripcion, isActive} según seed.
     // Mapeo los datos al formato que espera el frontend
-    const mappedTypes = tipos.map(t => ({
-      _id: t._id,
-      name: t.nombre,
-      description: t.descripcion,
-      isActive: t.isActive
+    const mappedTypes = await Promise.all(tipos.map(async (t) => {
+      const usageCount = await Complaint.countDocuments({ tipo: t._id });
+      return {
+        _id: t._id,
+        name: t.nombre,
+        description: t.descripcion,
+        isActive: t.isActive,
+        usageCount
+      };
     }));
     res.status(200).json({ ok: true, data: mappedTypes });
   } catch (error) {
@@ -88,7 +93,13 @@ const toggleTypeStatus = async (req, res, next) => {
 const deleteType = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // Falta validar si está en uso por alguna Complaint, pero por ahora lo borramos si es posible.
+    
+    // Validar si está en uso por alguna Complaint
+    const enUso = await Complaint.exists({ tipo: id });
+    if (enUso) {
+      return res.status(403).json({ ok: false, message: 'No se puede eliminar porque está en uso por denuncias' });
+    }
+
     const tipo = await ComplaintType.findByIdAndDelete(id);
     if (!tipo) return res.status(404).json({ ok: false, message: 'No encontrado' });
     res.status(200).json({ ok: true, message: 'Tipo eliminado' });
@@ -104,12 +115,16 @@ const getStatuses = async (req, res, next) => {
   try {
     const estados = await ComplaintStatus.find().sort({ isDefault: -1, nombre: 1 });
     // Mapeo los datos al formato que espera el frontend (en caso que usen name en vez de nombre)
-    const mappedStatuses = estados.map(e => ({
-      _id: e._id,
-      name: e.nombre,
-      color: e.color,
-      isDefault: e.isDefault,
-      isActive: e.isActive
+    const mappedStatuses = await Promise.all(estados.map(async (e) => {
+      const usageCount = await Complaint.countDocuments({ estado: e._id });
+      return {
+        _id: e._id,
+        name: e.nombre,
+        color: e.color,
+        isDefault: e.isDefault,
+        isActive: e.isActive,
+        usageCount
+      };
     }));
     res.status(200).json({ ok: true, data: mappedStatuses });
   } catch (error) {
@@ -182,6 +197,11 @@ const deleteStatus = async (req, res, next) => {
 
     if (estado.isDefault) {
       return res.status(403).json({ ok: false, message: 'Los estados por defecto no se pueden eliminar' });
+    }
+
+    const enUso = await Complaint.exists({ estado: id });
+    if (enUso) {
+      return res.status(403).json({ ok: false, message: 'No se puede eliminar porque está en uso por denuncias' });
     }
 
     await ComplaintStatus.findByIdAndDelete(id);

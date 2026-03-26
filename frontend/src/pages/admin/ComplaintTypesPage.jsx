@@ -9,6 +9,7 @@ import {
 import ComplaintTypeFormModal from '../../components/admins/ComplaintTypeFormModal';
 import { parseApiError } from '../../utils/parseApiError';
 import Swal from 'sweetalert2';
+import useDebounce from '../../hooks/useDebounce';
 
 export default function ComplaintTypesPage() {
   const [types, setTypes] = useState([]);
@@ -16,6 +17,8 @@ export default function ComplaintTypesPage() {
   const [search, setSearch] = useState('');
   const [typeToEdit, setTypeToEdit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
+  const searchDebounced = useDebounce(search, 400);
 
   const fetchTypes = async () => {
     setLoading(true);
@@ -40,7 +43,7 @@ export default function ComplaintTypesPage() {
 
   // Filtrado local case insensitive con search
   const filteredTypes = types.filter((t) => 
-    t.name.toLowerCase().includes(search.toLowerCase())
+    t.name.toLowerCase().includes(searchDebounced.toLowerCase())
   );
 
   // ── Crear ──
@@ -98,10 +101,18 @@ export default function ComplaintTypesPage() {
     const accion = typeItem.isActive ? 'desactivar' : 'activar';
     const accionPasado = typeItem.isActive ? 'desactivado' : 'activado';
 
+    let htmlMsg = `<p>Estás a punto de <strong>${accion}</strong> el tipo <strong>${typeItem.name}</strong>.</p>`;
+    if (typeItem.isActive) {
+      if (typeItem.usageCount > 0) {
+        htmlMsg += `<p class="mt-2 text-sm text-red-600 font-semibold">¡Este tipo tiene ${typeItem.usageCount} denuncia(s) asociada(s)!</p>`;
+      }
+      htmlMsg += `<p class="mt-2 text-sm text-gray-500">Al desactivarlo, no aparecerá para nuevas denuncias, pero las denuncias existentes no se verán afectadas.</p>`;
+    }
+
     const confirm = await Swal.fire({
       icon: 'warning',
       title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} tipo de denuncia?`,
-      html: `<p>Estás a punto de <strong>${accion}</strong> el tipo <strong>${typeItem.name}</strong>.</p> ${typeItem.isActive ? '<p class="mt-2 text-sm text-gray-500">Al desactivarlo, no aparecerá para nuevas denuncias, pero las denuncias existentes no se verán afectadas.</p>' : ''}`,
+      html: htmlMsg,
       showCancelButton: true,
       confirmButtonText: `Sí, ${accion}`,
       cancelButtonText: 'Cancelar',
@@ -249,12 +260,15 @@ export default function ComplaintTypesPage() {
                           {t.isActive ? 'Desactivar' : 'Activar'}
                         </button>
 
-                        <button
-                          onClick={() => handleDelete(t)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 transition-all duration-200"
-                        >
-                          Eliminar
-                        </button>
+                        {/* Mostrar Eliminar solo si no se ha usado (usageCount = 0 o inexistente) */}
+                        {(!t.usageCount || t.usageCount === 0) && (
+                          <button
+                            onClick={() => handleDelete(t)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                          >
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

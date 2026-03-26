@@ -153,7 +153,7 @@ const AllComplaintsPage = () => {
                     <td className="px-4 py-3 text-slate-600">{c.residente?.nombre}</td>
                     <td className="px-4 py-3 text-slate-600">{c.tipo?.nombre}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge estado={c.estado?.nombre} />
+                      <StatusBadge estado={c.estado} />
                     </td>
                     <td className="px-4 py-3">
                       <PriorityBadge prioridad={c.prioridad} />

@@ -110,7 +110,7 @@ const ComplaintDetailPage = () => {
           <h1 className="text-xl font-bold text-slate-800">{complaint.titulo}</h1>
           <p className="text-sm text-slate-500 mt-1">Creada el {formatDate(complaint.createdAt)}</p>
         </div>
-        <StatusBadge estado={complaint.estado?.nombre} />
+        <StatusBadge estado={complaint.estado} />
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 grid grid-cols-1 gap-4 md:grid-cols-2">

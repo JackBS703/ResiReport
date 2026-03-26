@@ -293,7 +293,7 @@ const MyComplaintsPage = () => {
                   <tr key={comp._id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-800 truncate max-w-[220px]">{comp.titulo}</td>
                     <td className="px-4 py-3 text-slate-600">{comp.tipo?.nombre}</td>
-                    <td className="px-4 py-3"><StatusBadge estado={comp.estado?.nombre} /></td>
+                    <td className="px-4 py-3"><StatusBadge estado={comp.estado} /></td>
                     <td className="px-4 py-3"><PriorityBadge prioridad={comp.prioridad} /></td>
                     <td className="px-4 py-3 text-slate-500">{formatDateShort(comp.createdAt)}</td>
                     <td className="px-4 py-3 space-x-2">
@@ -386,7 +386,7 @@ const MyComplaintsPage = () => {
               <p><strong>Descripción:</strong> {selectedComplaint.descripcion}</p>
               <p><strong>Ubicación:</strong> {selectedComplaint.ubicacion}</p>
               <p><strong>Tipo:</strong> {selectedComplaint.tipo?.nombre}</p>
-              <p><strong>Estado:</strong> <StatusBadge estado={selectedComplaint.estado?.nombre} /></p>
+              <p><strong>Estado:</strong> <StatusBadge estado={selectedComplaint.estado} /></p>
               <p><strong>Prioridad:</strong> <PriorityBadge prioridad={selectedComplaint.prioridad} /></p>
 
               <div>

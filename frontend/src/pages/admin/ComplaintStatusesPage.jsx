@@ -10,6 +10,7 @@ import ComplaintStatusFormModal from '../../components/admins/ComplaintStatusFor
 import { parseApiError } from '../../utils/parseApiError';
 import Swal from 'sweetalert2';
 import StatusBadge from '../../components/shared/StatusBadge';
+import useDebounce from '../../hooks/useDebounce';
 
 export default function ComplaintStatusesPage() {
   const [statuses, setStatuses] = useState([]);
@@ -17,6 +18,8 @@ export default function ComplaintStatusesPage() {
   const [search, setSearch] = useState('');
   const [statusToEdit, setStatusToEdit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const searchDebounced = useDebounce(search, 400);
 
   const fetchStatuses = async () => {
     setLoading(true);
@@ -40,7 +43,7 @@ export default function ComplaintStatusesPage() {
   }, []);
 
   const filteredStatuses = statuses.filter((s) => 
-    s.name.toLowerCase().includes(search.toLowerCase())
+    s.name.toLowerCase().includes(searchDebounced.toLowerCase())
   );
 
   // ── Crear ──
@@ -102,8 +105,14 @@ export default function ComplaintStatusesPage() {
     
     // Regla de Negocio (HU-09): Si isDefault y se desactiva, advertencia extra fuerte.
     if (statusItem.isDefault && statusItem.isActive) {
+      if (statusItem.usageCount > 0) {
+        warningHtml += `<p class="mt-2 text-sm text-red-600 font-semibold">¡Este estado tiene ${statusItem.usageCount} denuncia(s) asociada(s)!</p>`;
+      }
       warningHtml += `<p class="mt-2 text-sm text-red-600 font-semibold">¡ATENCIÓN! Este es un estado por defecto (Core). Desactivarlo podría afectar el flujo normal de atención de nuevas denuncias, aunque sí lo permitimos temporalmente.</p>`;
     } else if (statusItem.isActive) {
+      if (statusItem.usageCount > 0) {
+        warningHtml += `<p class="mt-2 text-sm text-red-600 font-semibold">¡Este estado tiene ${statusItem.usageCount} denuncia(s) asociada(s)!</p>`;
+      }
       warningHtml += `<p class="mt-2 text-sm text-gray-500">Al desactivarlo, ya no podrás mover nuevas denuncias hacia este estado.</p>`;
     }
 
@@ -287,8 +296,8 @@ export default function ComplaintStatusesPage() {
                           {s.isActive ? 'Desactivar' : 'Activar'}
                         </button>
 
-                        {/* Botón Oculto si es default (RF-19) */}
-                        {!s.isDefault && (
+                        {/* Botón Oculto si es default (RF-19) o si está en uso */}
+                        {!s.isDefault && (!s.usageCount || s.usageCount === 0) && (
                           <button
                             onClick={() => handleDelete(s)}
                             className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 transition-all duration-200"

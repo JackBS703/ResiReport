@@ -35,7 +35,7 @@ const getComplaints = async (req, res, next) => {
     const [complaints, total] = await Promise.all([
       Complaint.find(filtro)
         .populate('tipo',     'nombre')
-        .populate('estado',   'nombre')
+        .populate('estado',   'nombre color')
         .populate('residente','nombre correo torre apartamento')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -61,7 +61,7 @@ const getComplaintById = async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
       .populate('tipo',    'nombre')
-      .populate('estado',  'nombre')
+      .populate('estado',  'nombre color')
       .populate('residente', 'nombre correo torre apartamento')
       .populate('statusHistory.estadoNuevo',    'nombre')
       .populate('statusHistory.estadoAnterior', 'nombre')
@@ -130,7 +130,7 @@ const createComplaint = async (req, res, next) => {
     // Retornar con populates
     const populated = await Complaint.findById(complaint._id)
       .populate('tipo', 'nombre')
-      .populate('estado', 'nombre')
+      .populate('estado', 'nombre color')
       .populate('residente', 'nombre correo torre apartamento');
 
     res.status(201).json({ ok: true, data: populated });
@@ -165,7 +165,7 @@ const getMyComplaints = async (req, res, next) => {
     const [complaints, total] = await Promise.all([
       Complaint.find(filtro)
         .populate('tipo',     'nombre')
-        .populate('estado',   'nombre')
+        .populate('estado',   'nombre color')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum),
@@ -190,7 +190,7 @@ const updateComplaint = async (req, res, next) => {
   try {
     const { titulo, descripcion, ubicacion, tipo } = req.body;
 
-    const complaint = await Complaint.findById(req.params.id).populate('estado', 'nombre');
+    const complaint = await Complaint.findById(req.params.id).populate('estado', 'nombre color');
     if (!complaint) {
       return res.status(404).json({ ok: false, message: 'Denuncia no encontrada' });
     }
@@ -232,7 +232,7 @@ const updateComplaint = async (req, res, next) => {
     // Retornar actualizada
     const updated = await Complaint.findById(complaint._id)
       .populate('tipo', 'nombre')
-      .populate('estado', 'nombre')
+      .populate('estado', 'nombre color')
       .populate('residente', 'nombre correo torre apartamento');
 
     res.status(200).json({ ok: true, data: updated });
@@ -274,7 +274,7 @@ const cambiarEstado = async (req, res, next) => {
     // Retorna la complaint actualizada con todos los campos populados
     const actualizada = await Complaint.findById(complaint._id)
       .populate('tipo',    'nombre')
-      .populate('estado',  'nombre')
+      .populate('estado',  'nombre color')
       .populate('residente', 'nombre correo')
       .populate('statusHistory.estadoNuevo',    'nombre')
       .populate('statusHistory.estadoAnterior', 'nombre')
