@@ -61,7 +61,8 @@ const seed = async () => {
         await ComplaintStatus.create(estado);
         console.log(`🌱 Estado creado: ${estado.nombre}`);
       } else {
-        console.log(`⚠️  Estado ya existe: ${estado.nombre}`);
+        await ComplaintStatus.updateOne({ _id: existe._id }, { color: estado.color });
+        console.log(`⚠️  Estado actualizado con color: ${estado.nombre}`);
       }
     }
 
