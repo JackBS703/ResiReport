@@ -164,8 +164,11 @@ const getMyComplaints = async (req, res, next) => {
 
     const [complaints, total] = await Promise.all([
       Complaint.find(filtro)
-        .populate('tipo',     'nombre')
-        .populate('estado',   'nombre color')
+        .populate('tipo', 'nombre')
+        .populate('estado', 'nombre color')
+        .populate('statusHistory.estadoNuevo', 'nombre')
+        .populate('statusHistory.estadoAnterior', 'nombre')
+        .populate('statusHistory.cambiadoPor', 'nombre rol')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum),
