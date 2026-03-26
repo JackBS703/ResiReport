@@ -233,10 +233,13 @@ const updateComplaint = async (req, res, next) => {
     await complaint.save();
 
     // Retornar actualizada
-    const updated = await Complaint.findById(complaint._id)
+    const updated = await Complaint.findById(complaint.id)
       .populate('tipo', 'nombre')
       .populate('estado', 'nombre color')
-      .populate('residente', 'nombre correo torre apartamento');
+      .populate('residente', 'nombre correo torre apartamento')
+      .populate('statusHistory.estadoNuevo', 'nombre')
+      .populate('statusHistory.estadoAnterior', 'nombre')
+      .populate('statusHistory.cambiadoPor', 'nombre rol');
 
     res.status(200).json({ ok: true, data: updated });
   } catch (error) {
