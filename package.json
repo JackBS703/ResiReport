@@ -4,7 +4,7 @@
     "dev:frontend": "cd frontend && vite",
     "dev:backend": "cd backend && nodemon server.js",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "seed": "node backend/src/seeders/seedAdmin.js",
+    "seed": "node backend/src/seeders/seed.js",
     "build:frontend": "cd frontend && vite build"
   },
   "devDependencies": {
