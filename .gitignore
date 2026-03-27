@@ -142,3 +142,7 @@ vite.config.ts.timestamp-*
 .vscode/*
 !.vscode/settings.json
 .idea/*
+
+# Certificados SSL locales — el TLS lo maneja Vercel/Render en producción
+*.pem
+**/ssl/
