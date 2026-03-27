@@ -250,7 +250,7 @@ export default function ComplaintStatusesPage() {
                         ></span>
                         {/* Texto como se vería en un badge */}
                         <span 
-                          className="px-2 py-0.5 rounded text-xs font-semibold text-white shadow-sm"
+                          className="px-2 py-0.5 rounded text-xs font-semibold text-slate-700 shadow-sm"
                           style={{ backgroundColor: s.color || '#9CA3AF' }}
                         >
                            {s.name}
