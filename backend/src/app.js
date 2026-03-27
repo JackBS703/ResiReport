@@ -9,34 +9,39 @@ const residentRoutes = require('./routes/residentRoutes');
 
 const app = express();
 
-// Middlewares globales
-app.use(cors());
+// Orígenes permitidos según entorno
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean); // elimina undefined si FRONTEND_URL no está seteada
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permite requests sin origin (Postman, Render Shell, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS bloqueado: origen no permitido → ${origin}`));
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, message: 'ResiReport API corriendo ✅' });
-});
+app.get('/api/health', (req, res) => res.json({ ok: true, message: 'ResiReport API corriendo' }));
 
-// Aquí se registrarán las rutas de la API, por ejemplo:
-// app.use('/api/auth', authRoutes);
-// app.use('/api/residents', residentRoutes);
-// ...
+// Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/catalog', catalogRoutes);
 app.use('/api/admins', adminRouter);
-app.use('/api/residents', residentRoutes); 
+app.use('/api/residents', residentRoutes);
 
-app.use((req, res) => {
-  res.status(404).json({
-    ok: false,
-    message: 'Ruta no encontrada',
-  });
-});
+// 404
+app.use((req, res) => res.status(404).json({ ok: false, message: 'Ruta no encontrada' }));
 
-// Middleware de manejo de errores (debe ir al final, después de las rutas)
+// Error handler global — debe ir al final
 app.use(errorHandler);
 
 module.exports = app;
