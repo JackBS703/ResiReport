@@ -13,15 +13,14 @@ import Navbar from '@/components/shared/Navbar';
 import AllComplaintsPage from '@/pages/admin/AllComplaintsPage';
 import ComplaintDetailAdminPage from '@/pages/admin/ComplaintDetailAdminPage';
 import ResidentsPage from '@/pages/admin/ResidentsPage';
-import AdminsPage from '@/pages/admin/AdminsPage'; // ← NUEVO
+import AdminsPage from '@/pages/admin/AdminsPage';
 import ComplaintTypesPage from '@/pages/admin/ComplaintTypesPage';
-import ComplaintStatusesPage from '@/pages/admin/ComplaintStatusesPage'; // ← NUEVO
+import ComplaintStatusesPage from '@/pages/admin/ComplaintStatusesPage';
 
 // Páginas Resident
 import MyComplaintsPage from '@/pages/resident/MyComplaintsPage';
 import CreateComplaintPage from '@/pages/resident/CreateComplaintPage';
 import ComplaintDetailPage from '@/pages/resident/ComplaintDetailPage';
-import ProfilePage from '@/pages/resident/ProfilePage'; // we'll still use placeholder
 
 // Shared
 const NoAutorizado = () => <div className="p-8 text-red-500 font-semibold">403 — No autorizado</div>;
@@ -51,7 +50,7 @@ const LayoutConNavbar = () => (
           <Route path="/mis-denuncias" element={<MyComplaintsPage />} />
           <Route path="/mis-denuncias/:id" element={<ComplaintDetailPage />} />
           <Route path="/crear-denuncia" element={<CreateComplaintPage />} />
-          <Route path="/perfil" element={<ProfilePage />} />
+
         </Route>
 
         {/* ── Compartidas ── */}
