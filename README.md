@@ -27,33 +27,51 @@ Permite a residentes radicar denuncias y a administradores/porteros gestionarlas
 
 ```
 ResiReport/
-├── frontend/ # React + Vite + Tailwind v4
-│ └── src/
-│ ├── api/ # Instancias Axios por módulo
-│ ├── components/
-│ │ ├── shared/ # Navbar, ConfirmDialog, Badges, SearchInput...
-│ │ └── ui/ # Componentes shadcn/ui
-│ ├── context/ # AuthContext (JWT + rol)
-│ ├── hooks/ # useAuth, useDebounce
-│ ├── pages/
-│ │ ├── auth/ # LoginPage
-│ │ ├── resident/ # MyComplaints, CreateComplaint, Profile
-│ │ └── admin/ # AllComplaints, Users, Catalogs, Admins
-│ ├── routes/ # PrivateRoute, RoleRoute
-│ └── utils/ # constants.js, formatDate.js
+├── frontend/                        # React + Vite + Tailwind v4
+│   └── src/
+│       ├── api/
+│       │   ├── axiosInstance.js     # Instancia base Axios con interceptores JWT
+│       │   ├── authApi.js
+│       │   ├── complaintsApi.js
+│       │   ├── catalogApi.js
+│       │   ├── residentsApi.js
+│       │   └── adminsApi.js
+│       ├── assets/
+│       ├── components/
+│       │   ├── shared/              # Navbar, ConfirmDialog, Badges, SearchInput
+│       │   └── ui/                  # Componentes shadcn/ui
+│       ├── context/                 # AuthContext (JWT + rol)
+│       ├── hooks/                   # useAuth, useDebounce
+│       ├── lib/
+│       ├── pages/
+│       │   ├── auth/                # LoginPage
+│       │   ├── resident/            # MyComplaintsPage, CreateComplaintPage,
+│       │   │                        #   ComplaintDetailPage
+│       │   └── admin/               # AllComplaintsPage, ComplaintDetailAdminPage,
+│       │                            #   ResidentsPage, AdminsPage,
+│       │                            #   ComplaintTypesPage, ComplaintStatusesPage
+│       ├── routes/                  # PrivateRoute, RoleRoute
+│       ├── utils/                   # constants.js, formatDate.js
+│       ├── App.jsx
+│       └── main.jsx
 │
-├── backend/ # Node.js + Express + Mongoose
-│ └── src/
-│ ├── config/ # db.js, env.js
-│ ├── controllers/ # auth, users, complaints, catalogs
-│ ├── middlewares/ # verifyToken, verifyRole, errorHandler
-│ ├── models/ # User, Complaint, ComplaintType, ComplaintStatus
-│ └── routes/ # authRoutes, userRoutes, complaintRoutes, catalogRoutes
-│ ├── scripts/ # seed.js (Super Admin + datos iniciales)
-│ └── server.js
+├── backend/                         # Node.js + Express + Mongoose
+│   ├── server.js
+│   └── src/
+│       ├── app.js
+│       ├── config/                  # db.js, env.js
+│       ├── controllers/             # authController, complaintController,
+│       │                            #   residentController, adminController,
+│       │                            #   catalogController
+│       ├── middlewares/             # verifyToken, verifyRole, errorHandler
+│       ├── models/                  # User, Complaint, ComplaintType, ComplaintStatus
+│       ├── routes/                  # authRoutes, complaintRoutes, residentRoutes,
+│       │                            #   adminRoutes, catalogRoutes
+│       └── seeders/                 # seed.js (Super Admin + datos iniciales)
 │
 ├── docs/
-│ └── DESIGN.md # Arquitectura, modelos, API y decisiones técnicas
+│   └── DESIGN.md                    # Arquitectura, modelos, API y decisiones técnicas
+├── package.json                     # Scripts raíz (concurrently)
 └── README.md
 ```
 
@@ -101,9 +119,12 @@ cd ../backend && npm install
 # Desde la raíz — levanta frontend y backend simultáneamente
 npm run dev
 ```
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5000
-- Health check: http://localhost:5000/api/health
+
+| Servicio     | URL                              |
+|--------------|----------------------------------|
+| Frontend     | http://localhost:5173            |
+| Backend      | http://localhost:5000            |
+| Health check | http://localhost:5000/api/health |
 
 ### 5. Seed — Crear Super Admin inicial
 ```bash
@@ -134,13 +155,12 @@ npx shadcn@latest add [nombre-componente]
 
 ---
 
-## 👥 Distribución del equipo
+## 👥 Equipo
 
-| Persona | Módulos |
-| :-- | :-- |
-| Mateo | Auth · Admin Complaints · Infraestructura compartida |
-| Persona 2 | Gestión de Usuarios |
-| Persona 3 | Catálogos |
-| Persona 4 | Denuncias Residente |
+| Persona         | Módulos                                                          |
+|-----------------|------------------------------------------------------------------|
+| Mateo Berrío Cardona    | Auth  · Infraestructura compartida |
+| Mariana Montoya Sepúlveda | Gestión de usuarios                                 |
+| Esteban Cano Ramírez    | Catálogos (tipos y estados de denuncia)                          |
+| Yeimy Herrera Bedoya  | Gestión de Denuncias                                          |
 
-> ⚠️ **Nota para el equipo:** Los archivos `usersApi.js` y `catalogApi.js` ya fueron creados como infraestructura base. **No recrearlos.** Las rutas `/api/catalog/types/active` y `/api/catalog/statuses/active` también están implementadas.
